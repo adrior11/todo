@@ -1,7 +1,5 @@
 // TODO: Allow the implementation of multi line todos, split by a character like ;
 // TODO: Implement a backup solution of someone accidentally deletes their todos -> Merge conflict
-// TODO: Implement user feedback on actions like add sort and rm
-// TODO: Add enhanced sorting
 mod cli;
 mod todo;
 mod utils;

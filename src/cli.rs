@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 
 /// CLI structure to parse command line arguments
 #[derive(Parser)]
@@ -38,6 +38,17 @@ pub enum Pattern {
     /// Reset the todo list
     Reset,
 
-    /// Sort tasks
-    Sort,
+    /// Sort todos
+    Sort {
+        /// The field to sort by (id, date, done)
+        #[arg(value_name = "SORT_BY")]
+        sort_by: Option<SortBy>,
+    },
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+pub enum SortBy {
+    Id,
+    Date,
+    Done, // Runs default sort 
 }

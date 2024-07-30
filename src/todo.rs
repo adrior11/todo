@@ -5,7 +5,8 @@ use std::collections::BTreeSet;
 use std::io::{Read, Write};
 use std::fs::File;
 use std::path::Path;
-use crate::cli::Pattern;
+use chrono::{DateTime, Utc};
+use crate::cli::{Pattern, SortBy};
 
 /// Struct representing a Todo item
 #[derive(Serialize, Deserialize)]
@@ -13,6 +14,7 @@ struct Todo {
     id: usize,
     desc: String,
     done: bool,
+    created_at: DateTime<Utc>,
 }
 
 /// Struct representing a list of Todo items
@@ -31,7 +33,19 @@ impl TodoList {
             Pattern::Done { args } => self.done(args).unwrap_or_else(|err| eprintln!("Error: {}", err)),
             Pattern::Reset => self.reset(),
             Pattern::Rm { args } => self.rm(args).unwrap_or_else(|err| eprintln!("Error: {}", err)),
-            Pattern::Sort => self.sort(),
+            Pattern::Sort { sort_by } => self.sort(sort_by),
+        }
+    }
+
+    /// List all todo items
+    pub fn list(&self) {
+        for todo in self.todos.iter() {
+            let id_bold = todo.id.to_string().bold();
+            if todo.done { 
+                println!("{} {}", id_bold, todo.desc.strikethrough().dimmed()); 
+            } else {
+                println!("{} {}", id_bold, todo.desc);
+            }
         }
     }
 
@@ -46,20 +60,10 @@ impl TodoList {
                 id,
                 desc: item.to_string(),
                 done: false,
+                created_at: Utc::now(),
             });
-        })
-    }
-
-    /// List all todo items
-    pub fn list(&self) {
-        for todo in self.todos.iter() {
-            let id_bold = todo.id.to_string().bold();
-            if todo.done { 
-                println!("{} {}", id_bold, todo.desc.strikethrough()); 
-            } else {
-                println!("{} {}", id_bold, todo.desc);
-            }
-        }
+        });
+        self.list();
     }
 
     /// Mark todo items as done
@@ -70,7 +74,8 @@ impl TodoList {
             } else {
                 return Err(anyhow!("ID {} not found", id));
             }
-        }
+        };
+        self.list();
         Ok(())
     }
 
@@ -82,7 +87,8 @@ impl TodoList {
             } else {
                 return Err(anyhow!("ID {} not found", id));
             }
-        } 
+        };
+        self.list();
         Ok(())
     }
 
@@ -93,8 +99,13 @@ impl TodoList {
     }
 
     /// Sort todo items by their completion status
-    fn sort(&mut self) {
-        self.todos.sort_by_key(|todo| todo.done);
+    fn sort(&mut self, sort_by: Option<SortBy>) {
+        match sort_by {
+            Some(SortBy::Id) => self.todos.sort_by_key(|todo| todo.id),
+            Some(SortBy::Date) => self.todos.sort_by_key(|todo| todo.created_at),
+            _ => self.todos.sort_by_key(|todo| todo.done),
+        }
+        self.list();
     }
 
     /// Load todo list from a file
@@ -119,3 +130,4 @@ impl TodoList {
         Ok(())
     }
 }
+
