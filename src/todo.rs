@@ -50,8 +50,6 @@ impl TodoList {
         })
     }
 
-
-    // TODO: Maybe adjust the visualisation of todos using [ ] & [*]
     /// List all todo items
     pub fn list(&self) {
         for todo in self.todos.iter() {
@@ -68,7 +66,7 @@ impl TodoList {
     fn done(&mut self, ids: Vec<usize>) -> Result<()> {
         for id in ids {
             if let Some(pos) = self.todos.iter().position(|todo| todo.id == id) {
-                self.available_ids.insert(self.todos.remove(pos).id);
+                self.todos[pos].done = true;
             } else {
                 return Err(anyhow!("ID {} not found", id));
             }
