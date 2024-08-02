@@ -50,19 +50,29 @@ impl TodoList {
     }
 
     /// Add new todo items
-    fn add(&mut self, items: Vec<String>) {
-        items.iter().for_each(|item| {
+    fn add(&mut self, args: Vec<String>) {
+        let arg = args.join(" ");
+        
+        // Split the input string by double colon to get individual todo items
+        let items = arg.split("::");
+        for item in items {
+            // Trim any extra whitespace from the item description
+            let item_desc = item.trim();
+            if item_desc.is_empty() {
+                continue;
+            }
+
             // Get the smallest available ID or create a new one
             let id = self.available_ids.iter().next().cloned().unwrap_or_else(|| self.todos.len() + 1);
             self.available_ids.remove(&id);
 
             self.todos.push(Todo {
                 id,
-                desc: item.to_string(),
+                desc: item_desc.to_string(),
                 done: false,
                 created_at: Utc::now(),
             });
-        });
+        };
         self.list();
     }
 

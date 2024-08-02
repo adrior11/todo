@@ -13,8 +13,8 @@ pub struct Cli {
 pub enum Pattern {
     /// Add a new todo
     Add { 
-        /// The description of the todo
-        #[arg(value_name = "TODO_DESCRIPTION")]
+        /// The description of the todo(s), separated by '::' for multiple items
+        #[arg(value_name = "TODO_DESCRIPTION", num_args(1..))]
         args: Vec<String> 
     },
 
