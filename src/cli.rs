@@ -36,7 +36,11 @@ pub enum Pattern {
     },
 
     /// Reset the todo list
-    Reset,
+    Reset {
+        /// Include clearing the backup file
+        #[arg(long)]
+        include_backup: bool,
+    },
 
     /// Sort todos
     Sort {
@@ -46,6 +50,7 @@ pub enum Pattern {
     },
 }
 
+// TODO: Add docs 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum SortBy {
     Id,

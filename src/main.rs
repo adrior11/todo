@@ -1,5 +1,3 @@
-// TODO: Implement a backup solution of someone accidentally deletes their todos -> Merge conflict
-// TODO: Implement a way for multiple todo lists to exists, where a user can swap between them.
 mod cli;
 mod todo;
 mod utils;

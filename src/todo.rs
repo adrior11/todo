@@ -7,6 +7,7 @@ use std::fs::File;
 use std::path::Path;
 use chrono::{DateTime, Utc};
 use crate::cli::{Pattern, SortBy};
+use crate::utils::{backup_todo_file, delete_backup_file};
 
 /// Struct representing a Todo item
 #[derive(Serialize, Deserialize)]
@@ -31,7 +32,7 @@ impl TodoList {
             Pattern::Add { args } => self.add(args),
             Pattern::List => self.list(),
             Pattern::Done { args } => self.done(args).unwrap_or_else(|err| eprintln!("Error: {}", err)),
-            Pattern::Reset => self.reset(),
+            Pattern::Reset { include_backup } => self.reset(include_backup),
             Pattern::Rm { args } => self.rm(args).unwrap_or_else(|err| eprintln!("Error: {}", err)),
             Pattern::Sort { sort_by } => self.sort(sort_by),
         }
@@ -102,8 +103,18 @@ impl TodoList {
         Ok(())
     }
 
-    /// Reset the todo list
-    fn reset(&mut self) {
+    /// Reset the todo list and create a backup file unless statet
+    fn reset(&mut self, include_backup: bool) {
+        let result = if include_backup {
+            delete_backup_file()
+        } else {
+            backup_todo_file().map(|_| ()) // TODO: Adjust this later on with logging
+        };
+
+        if let Err(e) = result {
+            eprintln!("Backup deletion error: {}", e);
+        } 
+
         self.todos.clear();
         self.available_ids.clear();
     }
