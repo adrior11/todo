@@ -2,6 +2,12 @@
 name = "todo"
 version = "0.1.0"
 edition = "2021"
+authors = ["Adrian Schneider <adrian.schneider11@icloud.com>"]
+description = "A simple and flexible command-line todo application built with Rust."
+repository = "https://github.com/adrior11/todo"
+readme = "README.md"
+keywords = ["todo", "cli", "rust"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 clap = { version = "4.0", features = ["derive"] }
