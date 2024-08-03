@@ -1,3 +1,4 @@
+// TODO: Place backup files in distinct backup sub dir
 use anyhow::{anyhow, Context, Ok, Result};
 use std::fs;
 use std::path::PathBuf;
@@ -12,8 +13,8 @@ pub fn get_todo_file_path() -> Result<PathBuf> {
     Ok(path)
 }
 
-/// Get the path to the latest backup file, if it exists
-pub fn delete_backup_file() -> Result<()> {
+/// Delete all existing backup files
+pub fn delete_backup_files() -> Result<()> {
     let todo_path = get_todo_file_path()?;
     let backup_dir = todo_path.parent().unwrap();
 
@@ -28,15 +29,12 @@ pub fn delete_backup_file() -> Result<()> {
     Ok(())
 }
 
-/// Backup the existing todo file
+/// Backup the current todo file
 pub fn backup_todo_file() -> Result<PathBuf> {
     let todo_path = get_todo_file_path()?;
     if todo_path.exists() {
         let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
         let backup_path = todo_path.with_file_name(format!("todos_backup_{}.json", timestamp));
-
-        // Delete any existing backup files
-        delete_backup_file()?;
 
         fs::rename(&todo_path, &backup_path)
             .with_context(|| format!("Failed to rename todo file to backup path: {:?}", backup_path))?;
@@ -44,4 +42,35 @@ pub fn backup_todo_file() -> Result<PathBuf> {
     } else {
         Err(anyhow!("Todo file does not exist"))
     }
+}
+
+/// List all backup files and print their timestamps
+pub fn list_backup_files() -> Result<()> {
+    let todo_path = get_todo_file_path()?;
+    let backup_dir = todo_path.parent().unwrap();
+
+    for entry in fs::read_dir(backup_dir).context("Failed to read backup directory")? {
+        let entry = entry?;
+        let path = entry.path();
+        if let Some(file_name) = path.file_name().and_then(|name| name.to_str()) {
+            if file_name.starts_with("todos_backup_") {
+                if let Some(timestamp) = trim_backup_file_name(file_name) {
+                    // TODO: Print default message of no backup files exist 
+                    println!("{}", timestamp);
+                } else {
+                    eprint!("The backup file name format is incorrect")
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
+/// Trim the beginning and end of the backup file name to extract the timestamp 
+fn trim_backup_file_name(input: &str) -> Option<&str> {
+    if let Some(stripped) = input.strip_prefix("todos_backup_") {
+        return stripped.strip_suffix(".json");
+    }
+    None
 }

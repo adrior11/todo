@@ -36,24 +36,42 @@ pub enum Pattern {
     },
 
     /// Reset the todo list
-    Reset {
-        /// Include clearing the backup file
-        #[arg(long)]
-        include_backup: bool,
+    Reset,
+
+    /// Backup the todo List
+    Backup {
+        /// The optional field of the backup action
+        #[arg(value_name = "BACKUP_ACTION")]
+        name: Option<BackupAction>,
     },
 
     /// Sort todos
     Sort {
-        /// The field to sort by (id, date, done)
+        /// The optional field to sort by
         #[arg(value_name = "SORT_BY")]
         sort_by: Option<SortBy>,
     },
 }
 
-// TODO: Add docs 
+/// Enum representing different backup actions
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+pub enum BackupAction {
+    // TODO: Open command to see it's contents
+    /// Create a new backup
+    Create,
+    // TODO: Give option to delete all or just a specific file (Non optional) 
+    /// Delete existing backups
+    Delete, 
+    /// List all backups (default action)
+    List, 
+}
+
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum SortBy {
+    /// Sort by ID
     Id,
+    /// Sort by creation date
     Date,
-    Done, // Runs default sort 
+    /// Sort by completion status (default action)
+    Done,
 }

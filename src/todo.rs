@@ -6,8 +6,8 @@ use std::io::{Read, Write};
 use std::fs::File;
 use std::path::Path;
 use chrono::{DateTime, Utc};
-use crate::cli::{Pattern, SortBy};
-use crate::utils::{backup_todo_file, delete_backup_file};
+use crate::cli::{Pattern, BackupAction, SortBy};
+use crate::utils::{backup_todo_file, delete_backup_files, list_backup_files};
 
 /// Struct representing a Todo item
 #[derive(Serialize, Deserialize)]
@@ -32,8 +32,9 @@ impl TodoList {
             Pattern::Add { args } => self.add(args),
             Pattern::List => self.list(),
             Pattern::Done { args } => self.done(args).unwrap_or_else(|err| eprintln!("Error: {}", err)),
-            Pattern::Reset { include_backup } => self.reset(include_backup),
             Pattern::Rm { args } => self.rm(args).unwrap_or_else(|err| eprintln!("Error: {}", err)),
+            Pattern::Reset => self.reset(),
+            Pattern::Backup { name } => self.backup(name),
             Pattern::Sort { sort_by } => self.sort(sort_by),
         }
     }
@@ -104,19 +105,35 @@ impl TodoList {
     }
 
     /// Reset the todo list and create a backup file unless statet
-    fn reset(&mut self, include_backup: bool) {
-        let result = if include_backup {
-            delete_backup_file()
-        } else {
-            backup_todo_file().map(|_| ()) // TODO: Adjust this later on with logging
-        };
-
-        if let Err(e) = result {
+    fn reset(&mut self) {
+        // TODO: Option to disable it per default
+        if let Err(e) = backup_todo_file() {
             eprintln!("Backup deletion error: {}", e);
         } 
 
         self.todos.clear();
         self.available_ids.clear();
+    }
+
+    /// Handle backup operations based on the provided action
+    fn backup(&self, backup_action: Option<BackupAction>) {
+        match backup_action {
+            Some(BackupAction::Create) => {
+                if let Err(e) = backup_todo_file() {
+                    eprintln!("Error creating backup: {}", e);
+                }
+            },
+            Some(BackupAction::Delete) => {
+                if let Err(e) = delete_backup_files() {
+                    eprintln!("Error deleting backups: {}", e);
+                }
+            },
+            _ => {
+                if let Err(e) = list_backup_files() {
+                    eprintln!("Error listing backups: {}", e);
+                }
+            }
+        }
     }
 
     /// Sort todo items by their completion status
