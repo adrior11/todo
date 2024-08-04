@@ -21,6 +21,36 @@ This application allows you to manage your todo lists directly from the terminal
 - [ ] Improve the user interface
 - [ ] Add due dates and reminders for todo items
 
+## Installation
+
+> [!IMPORTANT]  
+> There is no official release of this application yet.
+
+To run the application, follow these steps:
+
+1. **Clone the repository**:
+    ```sh
+    git clone https://github.com/adrior11/todo.git
+    cd your-repo
+    ```
+
+2. **Build and run the application using Cargo**:
+    ```sh
+    cargo run -- <COMMAND> [OPTIONS]
+    ```
+
+    For example, to add a new todo:
+    ```sh
+    cargo run -- add Buy milk::Clean the house::Water plants
+    ```
+
+    To list all todos:
+    ```sh
+    cargo run -- list
+    ```
+
+Make sure you have [Rust](https://www.rust-lang.org/tools/install) installed on your system before running the available commands.
+
 ## Usage
 
 ### List all todos (default)
@@ -55,6 +85,7 @@ todo edit 1 Buy almond milk
 ### Mark a todo as done
 
 Mark one or more todos as done by their IDs.
+
 ```sh
 todo done <TODO_ID>
 ```
@@ -94,9 +125,7 @@ todo reset
 todo backup create
 ```
 
-#### Show the contents of a backup 
-
-Show the contents of a specific backup file by its timestamp.
+#### Show the contents of a specific backup file by its timestamp.
 
 ```sh 
 todo backup show <TIMESTAMP>
