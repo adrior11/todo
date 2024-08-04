@@ -69,7 +69,10 @@ impl TodoList {
             }
 
             // Get the smallest available ID or create a new one
-            let id = self.available_ids.iter().next().cloned().unwrap_or_else(|| self.todos.len() + 1);
+            let id = self.available_ids.iter()
+                .next()
+                .cloned()
+                .unwrap_or_else(|| self.todos.len() + 1);
             self.available_ids.remove(&id);
 
             self.todos.push(Todo {
@@ -95,8 +98,8 @@ impl TodoList {
     /// Mark todo items as done
     fn done(&mut self, ids: Vec<usize>) -> Result<()> {
         for id in ids {
-            if let Some(pos) = self.todos.iter().position(|todo| todo.id == id) {
-                self.todos[pos].done = true;
+            if let Some(todo) = self.todos.iter().position(|todo| todo.id == id) {
+                self.todos[todo].done = true;
             } else {
                 return Err(anyhow!("ID {} not found", id));
             }
@@ -108,8 +111,8 @@ impl TodoList {
     /// Remove todo items by ID
     fn rm(&mut self, ids: Vec<usize>) -> Result<()>{
         for id in ids {
-            if let Some(pos) = self.todos.iter().position(|todo| todo.id == id) {
-                self.available_ids.insert(self.todos.remove(pos).id);
+            if let Some(todo) = self.todos.iter().position(|todo| todo.id == id) {
+                self.available_ids.insert(self.todos.remove(todo).id);
             } else {
                 return Err(anyhow!("ID {} not found", id));
             }
@@ -152,6 +155,12 @@ impl TodoList {
                     }
                 }
             },
+            Some(BackupAction::Show { timestamp }) => {
+                match read_todo_list_from_backup(&timestamp) {
+                    Ok(todo_list) => todo_list.list(),
+                    Err(e) => eprintln!("Error showing backup contents of {}: {:?}", timestamp, e),
+                }   
+            },
             _ => {
                 if let Err(e) = list_backup_files() {
                     eprintln!("Error listing backups: {}", e);
@@ -172,24 +181,43 @@ impl TodoList {
 
     /// Load todo list from a file
     pub fn load_from_file(file_path: &Path) -> Result<Self> {
-        if !file_path.exists() {
-            return Ok(TodoList::default());
-        }
-
-        let mut file = File::open(file_path).context("Failed to open todo file")?;
-        let mut content = String::new();
-        file.read_to_string(&mut content).context("Failed to read todo file")?;
-
-        let todo_list: TodoList = serde_json::from_str(&content).context("Failed to parse todo JSON")?;
-        Ok(todo_list)
+        read_todo_list_from_file(file_path)
     }
 
     /// Save todo list to a file
     pub fn save_to_file(&self, file_path: &Path) -> Result<()> {
-        let content = serde_json::to_string_pretty(&self).context("Failed to serialize todo list")?;
-        let mut file = File::create(file_path).context("Failed to create todo file")?;
-        file.write_all(content.as_bytes()).context("Failed to write todo file")?;
+        let content = serde_json::to_string_pretty(&self)
+            .context("Failed to serialize todo list")?;
+
+        let mut file = File::create(file_path)
+            .context("Failed to create todo file")?;
+
+        file.write_all(content.as_bytes())
+            .context("Failed to write todo file")?;
+
         Ok(())
     }
 }
 
+/// Helper function to read and parse a TodoList from a file
+fn read_todo_list_from_file(file_path: &Path) -> Result<TodoList> {
+    if !file_path.exists() {
+        return Ok(TodoList::default());
+    }
+
+    let mut file = File::open(file_path).context("Failed to open todo file")?;
+    let mut content = String::new();
+
+    file.read_to_string(&mut content).context("Failed to read todo file")?;
+
+    let todo_list: TodoList = serde_json::from_str(&content)
+        .context("Failed to parse todo JSON")?;
+
+    Ok(todo_list)
+}
+
+/// Helper function to read and parse a TodoList from a backup file by timestamp
+fn read_todo_list_from_backup(timestamp: &str) -> Result<TodoList> {
+    let backup_path = get_backup_file_path(timestamp)?;
+    read_todo_list_from_file(&backup_path)
+}

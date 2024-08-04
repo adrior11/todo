@@ -11,6 +11,9 @@ pub struct Cli {
 /// Enum representing the different command patterns
 #[derive(Subcommand)]
 pub enum Pattern {
+    /// List all todos
+    List,
+
     /// Add a new todo
     Add { 
         /// The description of the todo(s), separated by '::' for multiple items
@@ -28,9 +31,6 @@ pub enum Pattern {
         #[arg(value_name = "NEW_DESCRIPTION")]
         description: Vec<String>,
     },
-
-    /// List all todos
-    List,
     
     /// Mark a todo as done
     Done { 
@@ -70,6 +70,15 @@ pub enum BackupAction {
     // TODO: Open command to see it's contents
     /// Create a new backup
     Create,
+
+    /// Shows the contents of a backup a backup file
+    Show {
+        /// The timestamp of the backup file to show its contents
+        #[arg
+
+    (value_name = "TIMESTAMP")]
+        timestamp: String,
+    },
 
     /// Delete existing backups
     Delete(DeleteOptions), 

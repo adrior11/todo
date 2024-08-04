@@ -21,6 +21,18 @@ fn get_backup_dir_path() -> Result<PathBuf> {
     Ok(path)
 }
 
+/// Get a backup file given by a specific timestamp
+pub fn get_backup_file_path(timestamp: &str) -> Result<PathBuf> {
+    let backup_dir = get_backup_dir_path()?;
+    let backup_file = backup_dir.join(format!("todos_backup_{}.json", timestamp));
+
+    if backup_file.exists() {
+        Ok(backup_file)
+    } else {
+        Err(anyhow!("Backup file with timestamp {} does not exist", timestamp))
+    }
+}
+
 /// Delete all existing backup files
 pub fn delete_backup_files() -> Result<()> {
     let backup_dir = get_backup_dir_path()?;
@@ -36,18 +48,11 @@ pub fn delete_backup_files() -> Result<()> {
     Ok(())
 }
 
+/// Deletes a specific backup file given by its timestamp
 pub fn delete_specific_backup_file(timestamp: &str) -> Result<()> {
-    let backup_dir = get_backup_dir_path()?;
-    let backup_file = backup_dir.join(format!("todos_backup_{}.json", timestamp));
-
-    if backup_file.exists() {
-        fs::remove_file(&backup_file).with_context(|| format!("Failed to remove backup file: {:?}", backup_file))?;
-    } else {
-        return Err(anyhow!("Backup file with timestamp {} does not exist", timestamp));
-    }
-
+    let backup_file = get_backup_file_path(timestamp)?;
+    fs::remove_file(&backup_file).with_context(|| format!("Failed to remove backup file: {:?}", backup_file))?;
     Ok(())
-
 }
 
 /// Backup the current todo file
