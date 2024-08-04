@@ -13,6 +13,6 @@ This application allows you to manage your todo lists directly from the terminal
 ## Planned Features
 
 - [X] Implement a backup solution to prevent accidental deletion of todos
-- [ ] Add a feature to edit existing todo items
+- [X] Add a feature to edit existing todo items
 - [ ] Improve the user interface
 - [ ] Add due dates and reminders for todo items

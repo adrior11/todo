@@ -30,9 +30,13 @@ impl TodoList {
     pub fn handle_cli(&mut self, pattern: Pattern) {
         match pattern {
             Pattern::Add { args } => self.add(args),
+            Pattern::Edit { id, description } => self.edit(id, description)
+                .unwrap_or_else(|err| eprint!("Error: {}", err)),
             Pattern::List => self.list(),
-            Pattern::Done { args } => self.done(args).unwrap_or_else(|err| eprintln!("Error: {}", err)),
-            Pattern::Rm { args } => self.rm(args).unwrap_or_else(|err| eprintln!("Error: {}", err)),
+            Pattern::Done { args } => self.done(args)
+                .unwrap_or_else(|err| eprintln!("Error: {}", err)),
+            Pattern::Rm { args } => self.rm(args)
+                .unwrap_or_else(|err| eprintln!("Error: {}", err)),
             Pattern::Reset => self.reset(),
             Pattern::Backup { name } => self.backup(name),
             Pattern::Sort { sort_by } => self.sort(sort_by),
@@ -76,6 +80,16 @@ impl TodoList {
             });
         };
         self.list();
+    }
+
+    fn edit(&mut self, id: usize, description: Vec<String>) -> Result<()> {
+        if let Some(todo) = self.todos.iter_mut().find(|todo| todo.id == id) {
+            todo.desc = description.join(" ");
+            self.list();
+            Ok(())
+        } else {
+            Err(anyhow!("ID {} not found", id))
+        }
     }
 
     /// Mark todo items as done

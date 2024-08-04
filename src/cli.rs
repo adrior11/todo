@@ -18,6 +18,17 @@ pub enum Pattern {
         args: Vec<String> 
     },
 
+    /// Edit an existing todo item 
+    Edit {
+        /// The ID of the todo to edit
+        #[arg(value_name = "TODO_ID")]
+        id: usize,
+
+        /// The new description for the todo
+        #[arg(value_name = "NEW_DESCRIPTION")]
+        description: Vec<String>,
+    },
+
     /// List all todos
     List,
     

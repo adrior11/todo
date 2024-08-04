@@ -1,6 +1,5 @@
 // TODO: Implement a restore command
 // TODO: Implement a ~30 Day period where backups will be stored (if multiple backups)
-// TODO: Implement a way to override existing todo items or correct/update them
 mod cli;
 mod todo;
 mod utils;
