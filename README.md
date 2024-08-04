@@ -31,7 +31,7 @@ To run the application, follow these steps:
 1. **Clone the repository**:
     ```sh
     git clone https://github.com/adrior11/todo.git
-    cd your-repo
+    cd todo
     ```
 
 2. **Build and run the application using Cargo**:
@@ -111,7 +111,7 @@ todo rm 1 2 3
 
 ### Reset the todo list
 
-Reset a todo list, clearing all todos. This action will automatically create backup file.
+Reset a todo list, clearing all todos. This action will automatically create a backup file.
 
 ```sh 
 todo reset
