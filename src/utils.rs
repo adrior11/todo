@@ -1,5 +1,3 @@
-// TODO: Place backup files in distinct backup sub dir
-// TODO: Default message if no backup files exist
 use anyhow::{anyhow, Context, Ok, Result};
 use std::fs;
 use std::path::PathBuf;
@@ -14,10 +12,18 @@ pub fn get_todo_file_path() -> Result<PathBuf> {
     Ok(path)
 }
 
+/// Get the path to the backup directory
+fn get_backup_dir_path() -> Result<PathBuf> {
+    let mut path = dirs::data_local_dir().ok_or_else(|| anyhow::anyhow!("Home directory not found"))?;
+    path.push("todo_app");
+    path.push("backup");
+    fs::create_dir_all(&path).context("Failed to create backup directory")?;
+    Ok(path)
+}
+
 /// Delete all existing backup files
 pub fn delete_backup_files() -> Result<()> {
-    let todo_path = get_todo_file_path()?;
-    let backup_dir = todo_path.parent().unwrap();
+    let backup_dir = get_backup_dir_path()?;
 
     for entry in fs::read_dir(backup_dir).context("Failed to read backup directory")? {
         let entry = entry?;
@@ -31,8 +37,7 @@ pub fn delete_backup_files() -> Result<()> {
 }
 
 pub fn delete_specific_backup_file(timestamp: &str) -> Result<()> {
-    let todo_path = get_todo_file_path()?;
-    let backup_dir = todo_path.parent().unwrap();
+    let backup_dir = get_backup_dir_path()?;
     let backup_file = backup_dir.join(format!("todos_backup_{}.json", timestamp));
 
     if backup_file.exists() {
@@ -48,11 +53,14 @@ pub fn delete_specific_backup_file(timestamp: &str) -> Result<()> {
 /// Backup the current todo file
 pub fn backup_todo_file() -> Result<PathBuf> {
     let todo_path = get_todo_file_path()?;
+    let backup_dir = get_backup_dir_path()?;
+
+
     if todo_path.exists() {
         let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
-        let backup_path = todo_path.with_file_name(format!("todos_backup_{}.json", timestamp));
+        let backup_path = backup_dir.join(format!("todos_backup_{}.json", timestamp));
 
-        fs::rename(&todo_path, &backup_path)
+        fs::copy(&todo_path, &backup_path)
             .with_context(|| format!("Failed to rename todo file to backup path: {:?}", backup_path))?;
         Ok(backup_path)
     } else {
@@ -62,8 +70,7 @@ pub fn backup_todo_file() -> Result<PathBuf> {
 
 /// List all backup files and print their timestamps
 pub fn list_backup_files() -> Result<()> {
-    let todo_path = get_todo_file_path()?;
-    let backup_dir = todo_path.parent().unwrap();
+    let backup_dir = get_backup_dir_path()?;
 
     for entry in fs::read_dir(backup_dir).context("Failed to read backup directory")? {
         let entry = entry?;
