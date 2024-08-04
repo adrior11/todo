@@ -5,26 +5,30 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Get the path to the todo file
 pub fn get_todo_file_path() -> Result<PathBuf> {
-    let mut path = dirs::data_local_dir().ok_or_else(|| anyhow::anyhow!("Home directory not found"))?;
-    path.push("todo_app");
-    fs::create_dir_all(&path).context("Failed to create todo_app directory")?;
+    let mut path = get_app_dir()?;
     path.push("todos.json");
     Ok(path)
 }
 
 /// Get the path to the backup directory
 fn get_backup_dir_path() -> Result<PathBuf> {
-    let mut path = dirs::data_local_dir().ok_or_else(|| anyhow::anyhow!("Home directory not found"))?;
-    path.push("todo_app");
+    let mut path = get_app_dir()?;
     path.push("backup");
     fs::create_dir_all(&path).context("Failed to create backup directory")?;
     Ok(path)
 }
 
+/// Get the path to the application directory 
+fn get_app_dir() -> Result<PathBuf> {
+    let mut path = dirs::data_local_dir().ok_or_else(|| anyhow!("Local data directory not found"))?;
+    path.push("todo_app");
+    fs::create_dir_all(&path).context("Failed to create todo_app directory")?;
+    Ok(path)
+}
+
 /// Get a backup file given by a specific timestamp
 pub fn get_backup_file_path(timestamp: &str) -> Result<PathBuf> {
-    let backup_dir = get_backup_dir_path()?;
-    let backup_file = backup_dir.join(format!("todos_backup_{}.json", timestamp));
+    let backup_file = get_backup_dir_path()?.join(format!("todos_backup_{}.json", timestamp));
 
     if backup_file.exists() {
         Ok(backup_file)
@@ -58,19 +62,18 @@ pub fn delete_specific_backup_file(timestamp: &str) -> Result<()> {
 /// Backup the current todo file
 pub fn backup_todo_file() -> Result<PathBuf> {
     let todo_path = get_todo_file_path()?;
-    let backup_dir = get_backup_dir_path()?;
-
-
-    if todo_path.exists() {
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
-        let backup_path = backup_dir.join(format!("todos_backup_{}.json", timestamp));
-
-        fs::copy(&todo_path, &backup_path)
-            .with_context(|| format!("Failed to rename todo file to backup path: {:?}", backup_path))?;
-        Ok(backup_path)
-    } else {
-        Err(anyhow!("Todo file does not exist"))
+    if !todo_path.exists() {
+        return Err(anyhow!("Todo file does not exist"));
     }
+
+    let backup_dir = get_backup_dir_path()?;
+    let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+    let backup_path = backup_dir.join(format!("todos_backup_{}.json", timestamp));
+
+    fs::copy(&todo_path, &backup_path)
+        .with_context(|| format!("Failed to rename todo file to backup path: {:?}", backup_path))?;
+
+    Ok(backup_path)
 }
 
 /// List all backup files and print their timestamps
@@ -96,8 +99,5 @@ pub fn list_backup_files() -> Result<()> {
 
 /// Trim the beginning and end of the backup file name to extract the timestamp 
 fn trim_backup_file_name(input: &str) -> Option<&str> {
-    if let Some(stripped) = input.strip_prefix("todos_backup_") {
-        return stripped.strip_suffix(".json");
-    }
-    None
+    input.strip_prefix("todos_backup_").and_then(|s| s.strip_suffix(".json")) 
 }
