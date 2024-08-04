@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Parser, Subcommand, Args, ValueEnum};
 
 /// CLI structure to parse command line arguments
 #[derive(Parser)]
@@ -41,7 +41,7 @@ pub enum Pattern {
     /// Backup the todo List
     Backup {
         /// The optional field of the backup action
-        #[arg(value_name = "BACKUP_ACTION")]
+        #[command(subcommand)]
         name: Option<BackupAction>,
     },
 
@@ -54,24 +54,52 @@ pub enum Pattern {
 }
 
 /// Enum representing different backup actions
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+#[derive(Subcommand)]
 pub enum BackupAction {
     // TODO: Open command to see it's contents
     /// Create a new backup
     Create,
-    // TODO: Give option to delete all or just a specific file (Non optional) 
+
     /// Delete existing backups
-    Delete, 
+    Delete(DeleteOptions), 
+
     /// List all backups (default action)
     List, 
 }
 
+
+///Struct representing delete options
+#[derive(Args)]
+pub struct DeleteOptions {
+    /// The specific delete option to use 
+    #[command(subcommand)]
+    pub option: DeleteOption
+}
+
+
+/// Enum representing delete options
+#[derive(Subcommand)]
+pub enum DeleteOption {
+    /// Delete all backups
+    All,
+
+    /// Delete a specific backup by timestamp
+    Timestamp {
+        /// The timestamp of the backup to delete
+        #[arg(value_name = "TIMESTAMP")]
+        timestamp: String,
+    }
+}
+
+/// Enum representing sorting criteria for todos
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum SortBy {
     /// Sort by ID
     Id,
+
     /// Sort by creation date
     Date,
+
     /// Sort by completion status (default action)
     Done,
 }

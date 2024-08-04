@@ -6,8 +6,8 @@ use std::io::{Read, Write};
 use std::fs::File;
 use std::path::Path;
 use chrono::{DateTime, Utc};
-use crate::cli::{Pattern, BackupAction, SortBy};
-use crate::utils::{backup_todo_file, delete_backup_files, list_backup_files};
+use crate::cli::{BackupAction, DeleteOption, Pattern, SortBy};
+use crate::utils::*;
 
 /// Struct representing a Todo item
 #[derive(Serialize, Deserialize)]
@@ -123,9 +123,19 @@ impl TodoList {
                     eprintln!("Error creating backup: {}", e);
                 }
             },
-            Some(BackupAction::Delete) => {
-                if let Err(e) = delete_backup_files() {
-                    eprintln!("Error deleting backups: {}", e);
+            Some(BackupAction::Delete(delete_option)) => {
+                match delete_option.option {
+                    DeleteOption::All => {
+                        if let Err(e) = delete_backup_files() {
+                            eprintln!("Error deleting backups: {}", e);
+                        }
+                    }
+                    DeleteOption::Timestamp { timestamp } => {
+                        if let Err(e) = delete_specific_backup_file(&timestamp) {
+                            eprint!("Error deleting backup with timestamp {}: {}",
+                                timestamp, e);
+                        }
+                    }
                 }
             },
             _ => {

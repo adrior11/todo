@@ -1,4 +1,5 @@
 // TODO: Place backup files in distinct backup sub dir
+// TODO: Default message if no backup files exist
 use anyhow::{anyhow, Context, Ok, Result};
 use std::fs;
 use std::path::PathBuf;
@@ -29,6 +30,21 @@ pub fn delete_backup_files() -> Result<()> {
     Ok(())
 }
 
+pub fn delete_specific_backup_file(timestamp: &str) -> Result<()> {
+    let todo_path = get_todo_file_path()?;
+    let backup_dir = todo_path.parent().unwrap();
+    let backup_file = backup_dir.join(format!("todos_backup_{}.json", timestamp));
+
+    if backup_file.exists() {
+        fs::remove_file(&backup_file).with_context(|| format!("Failed to remove backup file: {:?}", backup_file))?;
+    } else {
+        return Err(anyhow!("Backup file with timestamp {} does not exist", timestamp));
+    }
+
+    Ok(())
+
+}
+
 /// Backup the current todo file
 pub fn backup_todo_file() -> Result<PathBuf> {
     let todo_path = get_todo_file_path()?;
@@ -55,7 +71,6 @@ pub fn list_backup_files() -> Result<()> {
         if let Some(file_name) = path.file_name().and_then(|name| name.to_str()) {
             if file_name.starts_with("todos_backup_") {
                 if let Some(timestamp) = trim_backup_file_name(file_name) {
-                    // TODO: Print default message of no backup files exist 
                     println!("{}", timestamp);
                 } else {
                     eprint!("The backup file name format is incorrect")
