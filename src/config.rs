@@ -23,9 +23,8 @@ pub fn load_config_from_lua() -> Result<Config> {
     // Check if the configuration file exists, if not, create it with default values
     if !config_path.exists() {
         let default_config = Config::default();
-        let default_lua = format!(
-            "config = {{ backup_on_reset = {} }}",
-            default_config.backup_on_reset
+        let default_lua = generate_lua_config!(
+            "backup_on_reset" => default_config.backup_on_reset,
         );
         fs::write(&config_path, default_lua).context("Failed to write default config.lua")?;
     }
