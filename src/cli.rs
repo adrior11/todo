@@ -67,7 +67,6 @@ pub enum Pattern {
 /// Enum representing different backup actions
 #[derive(Subcommand)]
 pub enum BackupAction {
-    // TODO: Open command to see it's contents
     /// Create a new backup
     Create,
 

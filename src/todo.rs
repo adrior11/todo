@@ -8,6 +8,7 @@ use std::path::Path;
 use chrono::{DateTime, Utc};
 use crate::cli::{BackupAction, DeleteOption, Pattern, SortBy};
 use crate::utils::*;
+use crate::config::{Config, load_config_from_lua};
 
 /// Struct representing a Todo item
 #[derive(Serialize, Deserialize)]
@@ -23,6 +24,8 @@ struct Todo {
 pub struct TodoList {
     todos: Vec<Todo>,
     available_ids: BTreeSet<usize>,
+    #[serde(skip)]
+    config: Config,
 }
 
 impl TodoList {
@@ -123,10 +126,11 @@ impl TodoList {
 
     /// Reset the todo list and create a backup file unless statet
     fn reset(&mut self) {
-        // TODO: Option to disable it per default
-        if let Err(e) = backup_todo_file() {
-            eprintln!("Backup deletion error: {}", e);
-        } 
+        if self.config.backup_on_reset {
+            if let Err(e) = backup_todo_file() {
+                eprintln!("Backup deletion error: {}", e);
+            } 
+        }
 
         self.todos.clear();
         self.available_ids.clear();
@@ -181,7 +185,12 @@ impl TodoList {
 
     /// Load todo list from a file
     pub fn load_from_file(file_path: &Path) -> Result<Self> {
-        read_todo_list_from_file(file_path)
+        let mut todo_list = read_todo_list_from_file(file_path)?;
+
+        // Load configuration from Lua file
+        todo_list.config = load_config_from_lua().context("Failed to load configuration from Lua")?;
+
+        Ok(todo_list)
     }
 
     /// Save todo list to a file

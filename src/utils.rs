@@ -26,6 +26,14 @@ fn get_app_dir() -> Result<PathBuf> {
     Ok(path)
 }
 
+/// Get the path to the application configuration directory 
+pub fn get_config_dir() -> Result<PathBuf> {
+    let mut path = dirs::config_dir().ok_or_else(|| anyhow!("Configuration directory not foudn"))?;
+    path.push("todo_app");
+    fs::create_dir_all(&path).context("Failed to create configuration directory")?;
+    Ok(path)
+}
+
 /// Get a backup file given by a specific timestamp
 pub fn get_backup_file_path(timestamp: &str) -> Result<PathBuf> {
     let backup_file = get_backup_dir_path()?.join(format!("todos_backup_{}.json", timestamp));
@@ -36,6 +44,14 @@ pub fn get_backup_file_path(timestamp: &str) -> Result<PathBuf> {
         Err(anyhow!("Backup file with timestamp {} does not exist", timestamp))
     }
 }
+
+/// Get the path to the configuration file
+pub fn get_config_file_path() -> Result<PathBuf> {
+    let mut path = get_config_dir()?;
+    path.push("config.lua");
+    Ok(path)
+}
+
 
 /// Delete all existing backup files
 pub fn delete_backup_files() -> Result<()> {

@@ -1,15 +1,14 @@
 // TODO: Implement a restore command
-// TODO: Implement a ~30 Day period where backups will be stored
 mod cli;
 mod todo;
 mod utils;
+mod config;
 
 use clap::Parser;
 use anyhow::Result;
 use cli::Cli;
 use todo::TodoList;
 use utils::get_todo_file_path;
-
 
 /// Run the main application logic
 fn run() -> Result<()> {
