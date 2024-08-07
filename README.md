@@ -10,6 +10,7 @@ This application allows you to manage your todo lists directly from the terminal
 - Sort todos by ID, creation date, or completion status
 - Reset the entire todo list
 - Create, manage, and access backup files
+- **New**: User-configurable options via a Lua file 
 
 ## Planned Features
 
@@ -50,6 +51,32 @@ To run the application, follow these steps:
     ```
 
 Make sure you have [Rust](https://www.rust-lang.org/tools/install) installed on your system before running the available commands.
+
+## Configuration
+
+The application now supports user-configurable options via a Lua configuration file. The configuration file is located at:
+
+```
+// Lin: Some(/home/user/.config/todo_app/config.lua)
+// Win: Some(C:\Users\user\AppData\Roaming\todo_app\config.lua)
+// Mac: Some(/Users/user/Library/Application Support/todo_app/config.lua)
+```
+
+### Available Configuration Options
+
+- `backup_on_reset`: Specifies whether a backup should be created automatically when the todo list is reset. (default: `true`)
+
+### Exmaple Configuration 
+
+Here is an example of a `config.lua` file:
+
+```
+config = { 
+    backup_on_reset = true,
+}
+```
+
+You can edit this file to customize the behavior of the application.
 
 ## Usage
 
