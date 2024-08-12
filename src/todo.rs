@@ -47,13 +47,22 @@ impl TodoList {
     }
 
     /// List all todo items
+    // TODO: ✔ ✘
     pub fn list(&self) {
+        let max_indent_count = self.todos.iter()
+            .map(|todo| todo.id)
+            .max()
+            .unwrap_or(0)
+            .to_string()
+            .len();
+
         for todo in self.todos.iter() {
+            let indent = " ".repeat(max_indent_count - todo.id.to_string().len());
             let id_bold = todo.id.to_string().bold();
             if todo.done { 
-                println!("{} {}", id_bold, todo.desc.strikethrough().dimmed()); 
+                println!("{}{} {}", id_bold, indent, todo.desc.strikethrough().dimmed()); 
             } else {
-                println!("{} {}", id_bold, todo.desc);
+                println!("{}{} {}", id_bold, indent, todo.desc);
             }
         }
     }
