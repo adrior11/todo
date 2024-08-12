@@ -3,14 +3,26 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-/// Get the path to the todo file
+/// Get the path to the todo file.
+///
+/// If the directory does not exist, it attempts to create it.
+///
+/// # Returns
+///
+/// `Result<PathBuf>` - The full path to the `todos.json` file, or an error if the path could not be determined or created.
 pub fn get_todo_file_path() -> Result<PathBuf> {
     let mut path = get_app_dir()?;
     path.push("todos.json");
     Ok(path)
 }
 
-/// Get the path to the backup directory
+/// Get the path to the backup directory.
+///
+/// If the directory does not exist, it attempts to create it.
+///
+/// # Returns
+///
+/// `Result<PathBuf>` - The full path to the backup directory, or an error if the directory could not be created.
 fn get_backup_dir_path() -> Result<PathBuf> {
     let mut path = get_app_dir()?;
     path.push("backup");
@@ -18,7 +30,13 @@ fn get_backup_dir_path() -> Result<PathBuf> {
     Ok(path)
 }
 
-/// Get the path to the application directory 
+/// Get the path to the application data directory.
+///
+/// If the directory does not exist, it attempts to create it.
+///
+/// # Returns
+///
+/// `Result<PathBuf>` - The full path to the application's data directory, or an error if the directory could not be determined or created.
 fn get_app_dir() -> Result<PathBuf> {
     let mut path = dirs::data_local_dir().ok_or_else(|| anyhow!("Local data directory not found"))?;
     path.push("todo_app");
@@ -26,7 +44,13 @@ fn get_app_dir() -> Result<PathBuf> {
     Ok(path)
 }
 
-/// Get the path to the application configuration directory 
+/// Get the path to the application configuration directory.
+///
+/// If the directory does not exist, it attempts to create it.
+///
+/// # Returns
+///
+/// `Result<PathBuf>` - The full path to the application's configuration directory, or an error if the directory could not be determined or created.
 pub fn get_config_dir() -> Result<PathBuf> {
     let mut path = dirs::config_dir().ok_or_else(|| anyhow!("Configuration directory not foudn"))?;
     path.push("todo_app");
@@ -34,7 +58,17 @@ pub fn get_config_dir() -> Result<PathBuf> {
     Ok(path)
 }
 
-/// Get a backup file given by a specific timestamp
+/// Get the path to a backup file based on a specific timestamp.
+///
+/// It verifies if the backup file exists and returns the path if found, otherwise returns an error.
+///
+/// # Arguments
+///
+/// `timestamp` - A string slice representing the timestamp of the desired backup file.
+///
+/// # Returns
+///
+/// `Result<PathBuf>` - The full path to the backup file, or an error if the file does not exist.
 pub fn get_backup_file_path(timestamp: &str) -> Result<PathBuf> {
     let backup_file = get_backup_dir_path()?.join(format!("todos_backup_{}.json", timestamp));
 
@@ -45,7 +79,14 @@ pub fn get_backup_file_path(timestamp: &str) -> Result<PathBuf> {
     }
 }
 
-/// Get the path to the configuration file
+/// Get the path to the configuration file.
+///
+/// This function returns the file path for the `config.lua` file within the application's configuration directory.
+/// If the directory does not exist, it attempts to create it.
+///
+/// # Returns
+///
+/// `Result<PathBuf>` - The full path to the `config.lua` file, or an error if the path could not be determined or created.
 pub fn get_config_file_path() -> Result<PathBuf> {
     let mut path = get_config_dir()?;
     path.push("config.lua");
@@ -53,7 +94,14 @@ pub fn get_config_file_path() -> Result<PathBuf> {
 }
 
 
-/// Delete all existing backup files
+/// Delete all existing backup files.
+///
+/// This function deletes all backup files in the backup directory that follow the naming convention `todos_backup_*.json`.
+/// It skips any files that do not match this pattern.
+///
+/// # Returns
+///
+/// `Result<()>` - Returns `Ok(())` if all matching backup files are successfully deleted, or an error if the directory cannot be read.
 pub fn delete_backup_files() -> Result<()> {
     let backup_dir = get_backup_dir_path()?;
 
@@ -68,14 +116,31 @@ pub fn delete_backup_files() -> Result<()> {
     Ok(())
 }
 
-/// Deletes a specific backup file given by its timestamp
+/// Delete a specific backup file given by its timestamp.
+///
+/// It returns an error if the backup file does not exist or cannot be deleted.
+///
+/// # Arguments
+///
+/// `timestamp` - A string slice representing the timestamp of the backup file to delete.
+///
+/// # Returns
+///
+/// `Result<()>` - Returns `Ok(())` if the backup file is successfully deleted, or an error if it cannot be found or deleted.
 pub fn delete_specific_backup_file(timestamp: &str) -> Result<()> {
     let backup_file = get_backup_file_path(timestamp)?;
     fs::remove_file(&backup_file).with_context(|| format!("Failed to remove backup file: {:?}", backup_file))?;
     Ok(())
 }
 
-/// Backup the current todo file
+/// Backup the current todo file.
+///
+/// This function creates a backup of the current `todos.json` file by copying it to the backup directory with a timestamped filename. 
+/// It returns the path to the created backup file.
+///
+/// # Returns
+///
+/// `Result<PathBuf>` - The full path to the newly created backup file, or an error if the backup could not be completed.
 pub fn backup_todo_file() -> Result<PathBuf> {
     let todo_path = get_todo_file_path()?;
     if !todo_path.exists() {
@@ -92,7 +157,14 @@ pub fn backup_todo_file() -> Result<PathBuf> {
     Ok(backup_path)
 }
 
-/// List all backup files and print their timestamps
+/// List all backup files and print their timestamps.
+///
+/// This function lists all the backup files in the backup directory by extracting and printing the timestamps from their filenames. 
+/// It skips files that do not match the expected naming convention.
+///
+/// # Returns
+///
+/// `Result<()>` - Returns `Ok(())` if the files are successfully listed, or an error if the directory cannot be read.
 pub fn list_backup_files() -> Result<()> {
     let backup_dir = get_backup_dir_path()?;
 
@@ -113,7 +185,17 @@ pub fn list_backup_files() -> Result<()> {
     Ok(())
 }
 
-/// Trim the beginning and end of the backup file name to extract the timestamp 
+/// Trim the prefix and suffix of a backup file name to extract the timestamp.
+///
+/// This helper function removes the `todos_backup_` prefix and `.json` suffix from a backup file name to return just the timestamp.
+///
+/// # Arguments
+///
+/// `input` - The full backup file name as a string slice.
+///
+/// # Returns
+///
+/// `Option<&str>` - Returns the extracted timestamp as a string slice, or `None` if the input does not match the expected format.
 fn trim_backup_file_name(input: &str) -> Option<&str> {
     input.strip_prefix("todos_backup_").and_then(|s| s.strip_suffix(".json")) 
 }

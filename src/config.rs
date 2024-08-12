@@ -4,12 +4,15 @@ use anyhow::{Context, Result};
 use std::fs;
 use crate::utils::get_config_file_path;
 
+/// Struct representing the configuration settings
 #[derive(Debug, Deserialize)]
 pub struct Config {
+    /// Determines if a backup should be created on reset
     pub backup_on_reset: bool,
 }
 
 impl Default for Config {
+    /// Provides the default configuration settings
     fn default() -> Self {
         Config {
             backup_on_reset: true,
@@ -17,6 +20,18 @@ impl Default for Config {
     }
 }
 
+/// Loads the configuration from a Lua file.
+/// 
+/// If the configuration file does not exist, it creates one with default values.
+/// 
+/// # Returns
+/// 
+/// `Result<Config>` - Returns a `Config` struct populated with the settings from the Lua file, 
+/// or an error if the file could not be loaded or parsed.
+///
+/// # Errors
+///
+/// This function will return an error if the configuration file cannot be read or parsed.
 pub fn load_config_from_lua() -> Result<Config> {
     let config_path = get_config_file_path()?;
     

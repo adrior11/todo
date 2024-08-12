@@ -217,7 +217,26 @@ impl TodoList {
     }
 }
 
-/// Helper function to read and parse a TodoList from a file
+/// Helper function to read and parse a `TodoList` from a file.
+///
+/// If the file does not exist, it returns a default `TodoList`.
+///
+/// # Arguments
+///
+/// `file_path` - A reference to a `Path` that specifies the location of the file to be read.
+///
+/// # Returns
+///
+/// `Result<TodoList>` - On success, returns a `TodoList` parsed from the file contents. 
+///   On failure, returns an error indicating the reason for the failure.
+///
+/// # Errors
+///
+/// This function will return an error if:
+/// 
+/// * The file cannot be opened.
+/// * The file contents cannot be read.
+/// * The contents cannot be parsed as a `TodoList` due to JSON format issues.
 fn read_todo_list_from_file(file_path: &Path) -> Result<TodoList> {
     if !file_path.exists() {
         return Ok(TodoList::default());
@@ -234,7 +253,27 @@ fn read_todo_list_from_file(file_path: &Path) -> Result<TodoList> {
     Ok(todo_list)
 }
 
-/// Helper function to read and parse a TodoList from a backup file by timestamp
+/// Helper function to read and parse a `TodoList` from a backup file identified by a timestamp.
+///
+/// This function constructs the backup file path using the provided timestamp and then calls 
+/// `read_todo_list_from_file` to read and parse the `TodoList` from that file.
+///
+/// # Arguments
+///
+/// `timestamp` - A string slice that represents the timestamp of the backup file to be read.
+///
+/// # Returns
+///
+/// `Result<TodoList>` - On success, returns a `TodoList` parsed from the backup file. 
+///   On failure, returns an error indicating the reason for the failure.
+///
+/// # Errors
+///
+/// This function will return an error if:
+///
+/// * The backup file path cannot be constructed.
+/// * The backup file cannot be read or parsed, as described in the documentation for 
+///   `read_todo_list_from_file`.
 fn read_todo_list_from_backup(timestamp: &str) -> Result<TodoList> {
     let backup_path = get_backup_file_path(timestamp)?;
     read_todo_list_from_file(&backup_path)
