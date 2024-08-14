@@ -8,12 +8,12 @@
 /// # Example
 ///
 /// ```
+/// # #[macro_use] extern crate todo;
 /// let lua_config = generate_lua_config!(
 ///     "first_option" => true,
 ///     "second_option" => 42,
 /// );
-///
-/// assert_eq!(lua_config, "config = {\n    backup_on_reset = true,\n    another_option = 42,\n}\n");
+/// # assert_eq!(lua_config, "config = {\n    first_option = true,\n    second_option = 42,\n}\n");
 /// ```
 #[macro_export]
 macro_rules! generate_lua_config {
