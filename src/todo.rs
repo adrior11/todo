@@ -6,7 +6,7 @@ use std::io::{Read, Write};
 use std::fs::File;
 use std::path::Path;
 use chrono::{DateTime, Utc};
-use crate::cli::{BackupAction, DeleteOption, Pattern, SortBy};
+use crate::cli::{BackupAction, DeleteOptions, DeleteOption, Pattern, SortBy};
 use crate::utils::*;
 use crate::config::{Config, load_config_from_lua};
 
@@ -41,8 +41,8 @@ impl TodoList {
             Pattern::Rm { args } => self.rm(args)
                 .unwrap_or_else(|err| eprintln!("Error: {}", err)),
             Pattern::Reset => self.reset(),
-            Pattern::Backup { name } => self.backup(name),
             Pattern::Sort { sort_by } => self.sort(sort_by),
+            Pattern::Backup { name } => self.handle_backup(name),
         }
     }
 
@@ -81,11 +81,7 @@ impl TodoList {
             }
 
             // Get the smallest available ID or create a new one
-            let id = self.available_ids.iter()
-                .next()
-                .cloned()
-                .unwrap_or_else(|| self.todos.len() + 1);
-            self.available_ids.remove(&id);
+            let id = self.get_next_available_id();
 
             self.todos.push(Todo {
                 id,
@@ -146,69 +142,6 @@ impl TodoList {
         self.available_ids.clear();
     }
 
-    /// Handle backup operations based on the provided action
-    fn backup(&mut self, backup_action: Option<BackupAction>) {
-        match backup_action {
-            Some(BackupAction::Create) => {
-                if let Err(e) = backup_todo_file() {
-                    eprintln!("Error creating backup: {}", e);
-                }
-            },
-            Some(BackupAction::Delete(delete_option)) => {
-                match delete_option.option {
-                    DeleteOption::All => {
-                        if let Err(e) = delete_backup_files() {
-                            eprintln!("Error deleting backups: {}", e);
-                        }
-                    }
-                    DeleteOption::Timestamp { timestamp } => {
-                        if let Err(e) = delete_specific_backup_file(&timestamp) {
-                            eprint!("Error deleting backup with timestamp {}: {}",
-                                timestamp, e);
-                        }
-                    }
-                }
-            },
-            Some(BackupAction::Restore { timestamp, args }) => {
-                match read_todo_list_from_backup(&timestamp) {
-                    Ok(todo_list) => {
-                        for id in args {
-                            if let Some(todo) = todo_list.todos.iter().find(|todo| todo.id == id) {
-                                let id = self.available_ids.iter()
-                                    .next()
-                                    .cloned()
-                                    .unwrap_or_else(|| self.todos.len() + 1);
-                                self.available_ids.remove(&id);
-                                self.todos.push(Todo {
-                                    id,
-                                    desc: todo.desc.clone(),
-                                    done: todo.done,
-                                    created_at: todo.created_at,
-                                });
-                            } else {
-                                eprintln!("Error restoring todo item with ID {} from backup {}", id, timestamp);
-                            }
-                        }
-                        self.list()
-                    }, 
-                    Err(e) => eprintln!("Error restoring backup contents of {}: {:?}", timestamp, e)
-                }
-
-            }
-            Some(BackupAction::Show { timestamp }) => {
-                match read_todo_list_from_backup(&timestamp) {
-                    Ok(todo_list) => todo_list.list(),
-                    Err(e) => eprintln!("Error showing backup contents of {}: {:?}", timestamp, e),
-                }   
-            },
-            _ => {
-                if let Err(e) = list_backup_files() {
-                    eprintln!("Error listing backups: {}", e);
-                }
-            }
-        }
-    }
-
     /// Sort todo items by their completion status
     fn sort(&mut self, sort_by: Option<SortBy>) {
         match sort_by {
@@ -217,6 +150,88 @@ impl TodoList {
             _ => self.todos.sort_by_key(|todo| todo.done),
         }
         self.list();
+    }
+
+    /// Handle backup operations based on the provided action
+    fn handle_backup(&mut self, backup_action: Option<BackupAction>) {
+        match backup_action {
+            Some(BackupAction::Create) => self.create_backup(),
+            Some(BackupAction::Delete(delete_option)) => self.delete_backup(delete_option),
+            Some(BackupAction::Restore { timestamp, args }) => self.restore_backup(&timestamp, args),
+            Some(BackupAction::Show { timestamp }) => self.show_backup(&timestamp),
+            _ => self.list_backups(),
+        }
+    }
+
+    /// Create a new backup
+    fn create_backup(&self) {
+        if let Err(e) = backup_todo_file() {
+            eprintln!("Error creating backup: {}", e);
+        }
+    }
+
+    /// Delete backups based on the specified option
+    fn delete_backup(&self, delete_option: DeleteOptions) {
+        match delete_option.option {
+            DeleteOption::All => {
+                if let Err(e) = delete_backup_files() {
+                    eprintln!("Error deleting all backups: {}", e);
+                }
+            }
+            DeleteOption::Timestamp { timestamp } => {
+                if let Err(e) = delete_specific_backup_file(&timestamp) {
+                    eprintln!("Error deleting backup with timestamp {}: {}", timestamp, e);
+                }
+            }
+        }
+    }
+
+    /// Restore todo items from a backup
+    fn restore_backup(&mut self, timestamp: &str, ids_to_restore: Vec<usize>) {
+        match read_todo_list_from_backup(timestamp) {
+            Ok(todo_list) => {
+                for id in ids_to_restore {
+                    if let Some(todo) = self.restore_single_todo_from_backup(&todo_list, id) {
+                        self.todos.push(todo);
+                    } else {
+                        eprintln!("Error restoring backup item with ID {}", id);
+                    }
+                }
+
+                self.list();
+            }
+            Err(e) => eprintln!("Error restoring backup from {}: {:?}", timestamp, e),
+        }
+    }
+
+    /// Restore a single todo item from a backup list 
+    fn restore_single_todo_from_backup(&mut self, todo_list: &TodoList, id: usize) -> Option<Todo> {
+        if let Some(backup_todo) = todo_list.todos.iter().find(|todo| todo.id == id) {
+            Some(Todo {
+                id: self.get_next_available_id(),
+                desc: backup_todo.desc.clone(),
+                done: backup_todo.done,
+                created_at: backup_todo.created_at,
+            })
+        } else {
+            eprintln!("Error: Todo item with ID {} not found in backup", id);
+            None
+        }
+    }
+
+    /// Show the contents of a specific backup
+    fn show_backup(&self, timestamp: &str) {
+        match read_todo_list_from_backup(timestamp) {
+            Ok(todo_list) => todo_list.list(),
+            Err(e) => eprintln!("Error showing backup contents of {}: {:?}", timestamp, e),
+        }
+    }
+
+    /// List all available backups
+    fn list_backups(&self) {
+        if let Err(e) = list_backup_files() {
+            eprintln!("Error listing backups: {}", e);
+        }
     }
 
     /// Load todo list from a file
@@ -242,6 +257,17 @@ impl TodoList {
 
         Ok(())
     }
+
+    /// Retrieve the next available ID or create a new one
+    fn get_next_available_id(&mut self) -> usize {
+        let next_id = self.available_ids.iter()
+            .next()
+            .cloned()
+            .unwrap_or_else(|| self.todos.len() + 1);
+
+        self.available_ids.remove(&next_id);
+        next_id
+    } 
 }
 
 /// Helper function to read and parse a `TodoList` from a file.

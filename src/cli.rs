@@ -50,18 +50,18 @@ pub enum Pattern {
     /// Reset the todo list
     Reset,
 
-    /// Backup the todo List
-    Backup {
-        /// The optional field of the backup action
-        #[command(subcommand)]
-        name: Option<BackupAction>,
-    },
-
     /// Sort todos
     Sort {
         /// The optional field to sort by
         #[arg(value_name = "SORT_BY")]
         sort_by: Option<SortBy>,
+    },
+
+    /// Backup the todo List
+    Backup {
+        /// The optional field of the backup action
+        #[command(subcommand)]
+        name: Option<BackupAction>,
     },
 }
 
