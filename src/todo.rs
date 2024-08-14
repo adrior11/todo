@@ -97,6 +97,7 @@ impl TodoList {
         self.list();
     }
 
+    /// Edit the description of an existing todo item 
     fn edit(&mut self, id: usize, description: Vec<String>) -> Result<()> {
         if let Some(todo) = self.todos.iter_mut().find(|todo| todo.id == id) {
             todo.desc = description.join(" ");
@@ -146,7 +147,7 @@ impl TodoList {
     }
 
     /// Handle backup operations based on the provided action
-    fn backup(&self, backup_action: Option<BackupAction>) {
+    fn backup(&mut self, backup_action: Option<BackupAction>) {
         match backup_action {
             Some(BackupAction::Create) => {
                 if let Err(e) = backup_todo_file() {
@@ -168,6 +169,32 @@ impl TodoList {
                     }
                 }
             },
+            Some(BackupAction::Restore { timestamp, args }) => {
+                match read_todo_list_from_backup(&timestamp) {
+                    Ok(todo_list) => {
+                        for id in args {
+                            if let Some(todo) = todo_list.todos.iter().find(|todo| todo.id == id) {
+                                let id = self.available_ids.iter()
+                                    .next()
+                                    .cloned()
+                                    .unwrap_or_else(|| self.todos.len() + 1);
+                                self.available_ids.remove(&id);
+                                self.todos.push(Todo {
+                                    id,
+                                    desc: todo.desc.clone(),
+                                    done: todo.done,
+                                    created_at: todo.created_at,
+                                });
+                            } else {
+                                eprintln!("Error restoring todo item with ID {} from backup {}", id, timestamp);
+                            }
+                        }
+                        self.list()
+                    }, 
+                    Err(e) => eprintln!("Error restoring backup contents of {}: {:?}", timestamp, e)
+                }
+
+            }
             Some(BackupAction::Show { timestamp }) => {
                 match read_todo_list_from_backup(&timestamp) {
                     Ok(todo_list) => todo_list.list(),

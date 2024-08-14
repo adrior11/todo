@@ -1,3 +1,4 @@
+// TODO: Add a command to toggle config options
 use clap::{Parser, Subcommand, Args, ValueEnum};
 
 /// CLI structure to parse command line arguments
@@ -73,14 +74,23 @@ pub enum BackupAction {
     /// Shows the contents of a backup a backup file
     Show {
         /// The timestamp of the backup file to show its contents
-        #[arg
-
-    (value_name = "TIMESTAMP")]
+        #[arg(value_name = "TIMESTAMP")]
         timestamp: String,
     },
 
     /// Delete existing backups
     Delete(DeleteOptions), 
+
+    /// Restore specific todo items from a backup
+    Restore {
+        /// The timestamp of the backup file to restore from
+        #[arg(value_name = "TIMESTAMP")]
+        timestamp: String,
+
+        /// The ID of the todo item to restore from the backup
+        #[arg(value_name = "TODO_ID")]
+        args: Vec<usize> 
+    },
 
     /// List all backups (default action)
     List, 
