@@ -10,13 +10,13 @@ This application allows you to manage your todo lists directly from the terminal
 - Sort todos by ID, creation date, or completion status
 - Reset the entire todo list
 - Create, manage, and access backup files
-- **New**: User-configurable options via a Lua file 
+- User-configurable options via a Lua file 
 
 ## Planned Features
 
 - [X] Implement a backup solution to prevent accidental deletion of todos
 - [X] Add a feature to edit existing todo items
-- [ ] Add restore command for backup retrieval
+- [X] Add restore command for backup retrieval
 - [ ] Implement a filter for todo items
 - [ ] Implement multiple todo lists
 - [ ] Improve the user interface
@@ -70,7 +70,7 @@ The application now supports user-configurable options via a Lua configuration f
 
 Here is an example of a `config.lua` file:
 
-```
+```lua
 config = { 
     backup_on_reset = true,
 }
@@ -90,7 +90,7 @@ todo list
 Add one or more todos, separated by `::`.
 
 ```sh
-todo add <TODO_DESCRIPTION>
+todo add [TODO_DESCRIPTION]
 ```
 
 Example:
@@ -114,7 +114,7 @@ todo edit 1 Buy almond milk
 Mark one or more todos as done by their IDs.
 
 ```sh
-todo done <TODO_ID>
+todo done [TODO_ID]
 ```
 
 Example:
@@ -128,7 +128,7 @@ todo done 1 2 3
 Remove one or more todos by their IDs.
 
 ```sh
-todo rm <TODO_ID>
+todo rm [TODO_ID]
 ```
 
 Example:
@@ -170,6 +170,17 @@ todo backup delete all
 
 ```sh 
 todo backup delete timestamp <TIMESTAMP>
+```
+
+#### Restore todo items from a backup
+
+```sh
+todo backup restore <TIMESTAMP> [TODO_ID]
+```
+
+Example:
+```sh
+todo backup restore 1723065962 1 2 3
 ```
 
 #### List all backups (default)
