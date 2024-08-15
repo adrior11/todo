@@ -316,3 +316,127 @@ fn read_todo_list_from_backup(timestamp: &str) -> Result<TodoList> {
     read_todo_list_from_file(&backup_path)
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::todo::TodoList;
+    use std::collections::BTreeSet;
+    use std::path::Path;
+
+    // Helper function to create a TodoList with predefined todos
+    fn create_todo_list_with_items() -> TodoList {
+        let mut todo_list = TodoList::default();
+        todo_list.add(vec!["First task".to_string()]);
+        todo_list.add(vec!["Second task".to_string()]);
+        todo_list
+    }
+
+    #[test]
+    fn test_add_todos_generates_unique_ids() {
+        let mut todo_list = TodoList::default();
+        todo_list.add(vec!["First task".to_string()]);
+        todo_list.add(vec!["Second task".to_string()]);
+        todo_list.add(vec!["Third task".to_string()]);
+        
+        assert_eq!(todo_list.todos.len(), 3);
+        let ids: BTreeSet<_> = todo_list.todos.iter().map(|todo| todo.id).collect();
+        assert_eq!(ids.len(), 3); // All IDs should be unique
+    }
+
+    #[test]
+    fn test_todo_list_reset() {
+        let mut todo_list = create_todo_list_with_items();
+        assert_eq!(todo_list.todos.len(), 2);
+        
+        todo_list.reset();
+        assert_eq!(todo_list.todos.len(), 0);
+        assert_eq!(todo_list.available_ids.len(), 0);
+    }
+
+    #[test]
+    fn test_mark_todos_as_done() {
+        let mut todo_list = create_todo_list_with_items();
+        let ids: Vec<usize> = todo_list.todos.iter().map(|todo| todo.id).collect();
+        
+        todo_list.done(ids.clone()).expect("Failed to mark todos as done");
+
+        for todo in todo_list.todos {
+            assert!(todo.done, "Todo item with ID {} was not marked as done", todo.id);
+        }
+    }
+
+    #[test]
+    fn test_remove_todo() {
+        let mut todo_list = create_todo_list_with_items();
+        let id_to_remove = todo_list.todos[0].id;
+
+        todo_list.rm(vec![id_to_remove]).expect("Failed to remove todo");
+
+        assert!(todo_list.todos.iter().all(|todo| todo.id != id_to_remove), "Todo with ID {} was not removed", id_to_remove);
+    }
+
+    #[test]
+    fn test_edit_todo() {
+        let mut todo_list = create_todo_list_with_items();
+        let id_to_edit = todo_list.todos[0].id;
+        let new_desc = vec!["Updated task description".to_string()];
+
+        todo_list.edit(id_to_edit, new_desc.clone()).expect("Failed to edit todo");
+
+        assert_eq!(todo_list.todos[0].desc, new_desc.join(" "));
+    }
+
+    #[test]
+    fn test_remove_nonexistent_todo() {
+        let mut todo_list = create_todo_list_with_items();
+        let non_existent_id = 999;
+
+        let result = todo_list.rm(vec![non_existent_id]);
+        assert!(result.is_err(), "Removing non-existent todo should fail");
+    }
+
+    #[test]
+    fn test_edit_nonexistent_todo() {
+        let mut todo_list = create_todo_list_with_items();
+        let non_existent_id = 999;
+        let new_desc = vec!["Non-existent task".to_string()];
+
+        let result = todo_list.edit(non_existent_id, new_desc);
+        assert!(result.is_err(), "Editing non-existent todo should fail");
+    }
+
+    #[test]
+    fn test_save_and_load_todo_list() {
+        let file_path = Path::new("test_todos.json");
+        let todo_list = create_todo_list_with_items();
+
+        // Save the list to a file
+        todo_list.save_to_file(file_path).expect("Failed to save todo list");
+
+        // Load the list from the file
+        let loaded_todo_list = TodoList::load_from_file(file_path).expect("Failed to load todo list");
+
+        assert_eq!(loaded_todo_list.todos.len(), todo_list.todos.len());
+
+        // Clean up test file
+        std::fs::remove_file(file_path).expect("Failed to delete test file");
+    }
+
+    #[test]
+    fn test_todo_id_regeneration_after_removal() {
+        let mut todo_list = TodoList::default();
+
+        // Add some todos
+        todo_list.add(vec!["First task".to_string()]);
+        todo_list.add(vec!["Second task".to_string()]);
+
+        // Remove the first todo
+        let id_to_remove = todo_list.todos[0].id;
+        todo_list.rm(vec![id_to_remove]).expect("Failed to remove todo");
+
+        // Add a new todo, which should reuse the removed ID
+        todo_list.add(vec!["Third task".to_string()]);
+        
+        assert_eq!(todo_list.todos.len(), 2);
+        assert!(todo_list.todos.iter().any(|todo| todo.id == id_to_remove), "ID was not reused");
+    }
+}
