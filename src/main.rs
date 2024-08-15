@@ -1,12 +1,10 @@
-// TODO: Implement a restore command
-
 #[macro_use]
 mod macros;
-
 mod cli;
 mod todo;
 mod utils;
 mod config;
+mod render;
 
 use clap::Parser;
 use anyhow::Result;

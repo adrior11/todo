@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use colored::*;
 use anyhow::{anyhow, Context, Result};
 use std::collections::BTreeSet;
 use std::io::{Read, Write};
@@ -7,15 +6,16 @@ use std::fs::File;
 use std::path::Path;
 use chrono::{DateTime, Utc};
 use crate::cli::{BackupAction, DeleteOptions, DeleteOption, Pattern, SortBy};
+use crate::render::render_todo_list;
 use crate::utils::*;
 use crate::config::{Config, load_config_from_lua};
 
 /// Struct representing a Todo item
 #[derive(Serialize, Deserialize)]
-struct Todo {
-    id: usize,
-    desc: String,
-    done: bool,
+pub struct Todo {
+    pub(crate) id: usize,
+    pub(crate) desc: String,
+    pub(crate) done: bool,
     created_at: DateTime<Utc>,
 }
 
@@ -47,24 +47,8 @@ impl TodoList {
     }
 
     /// List all todo items
-    // TODO: ✔ ✘
     pub fn list(&self) {
-        let max_indent_count = self.todos.iter()
-            .map(|todo| todo.id)
-            .max()
-            .unwrap_or(0)
-            .to_string()
-            .len();
-
-        for todo in self.todos.iter() {
-            let indent = " ".repeat(max_indent_count - todo.id.to_string().len());
-            let id_bold = todo.id.to_string().bold();
-            if todo.done { 
-                println!("{}{} {}", id_bold, indent, todo.desc.strikethrough().dimmed()); 
-            } else {
-                println!("{}{} {}", id_bold, indent, todo.desc);
-            }
-        }
+        render_todo_list(&self.todos, &self.config)
     }
 
     /// Add new todo items
@@ -331,3 +315,4 @@ fn read_todo_list_from_backup(timestamp: &str) -> Result<TodoList> {
     let backup_path = get_backup_file_path(timestamp)?;
     read_todo_list_from_file(&backup_path)
 }
+

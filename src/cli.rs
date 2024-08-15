@@ -1,4 +1,3 @@
-// TODO: Add a command to toggle config options
 use clap::{Parser, Subcommand, Args, ValueEnum};
 
 /// CLI structure to parse command line arguments

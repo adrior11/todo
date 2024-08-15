@@ -1,8 +1,10 @@
+// TODO: Add another macro for scalability
 use rlua::Lua;
 use serde::Deserialize;
 use anyhow::{Context, Result};
 use std::fs;
 use crate::utils::get_config_file_path;
+use crate::generate_lua_config;
 
 /// Struct representing the configuration settings
 #[derive(Debug, Deserialize)]
@@ -16,6 +18,9 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             backup_on_reset: true,
+            // TODO: Show completed
+            // TODO: directory
+            // TODO: Style
         }
     }
 }
