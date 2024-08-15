@@ -16,7 +16,7 @@ pub struct Todo {
     pub(crate) id: usize,
     pub(crate) desc: String,
     pub(crate) done: bool,
-    created_at: DateTime<Utc>,
+    pub(crate) created_at: DateTime<Utc>,
 }
 
 /// Struct representing a list of Todo items
