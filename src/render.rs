@@ -8,19 +8,25 @@ pub fn render_todo(todo: &Todo, _config: &Config, max_indent_count: usize) {
     let indent = " ".repeat(max_indent_count - todo.id.to_string().len());
     let id_display = format!("{}.", todo.id).dimmed();
 
-    let status = if todo.done {
-        "[X]".dimmed()
+    let status = if todo.is_complete {
+        "[✔]".dimmed()
     } else {
         "[ ]".normal()
     };
 
-    let description = if todo.done {
+    let description = if todo.is_complete {
         todo.desc.dimmed()
     } else {
-        format!("{} {}", todo.desc, days_since(todo.created_at).dimmed()).normal()
+        format!("{} {}", todo.desc, days_since(todo.timestamp).dimmed()).normal()
     };
 
-    println!(" {} {} {} {}", indent, id_display, status, description);
+    let star = if todo.is_starred {
+        "􀆿".yellow()
+    } else {
+        "".normal()
+    };
+
+    println!(" {} {} {} {} {}", indent, id_display, status, description, star);
 }
 
 /// Renders the list of todos.
@@ -52,7 +58,7 @@ fn days_since(date: DateTime<Utc>) -> String {
 }
 
 fn format_status_summary(todos: &[Todo]) -> ColoredString {
-    let done_count = todos.iter().filter(|t| t.done).count();
+    let done_count = todos.iter().filter(|t| t.is_complete).count();
     format!("[{}/{}]", done_count, todos.len()).dimmed()
 }
 
@@ -60,6 +66,6 @@ fn calculate_completion_rate(todos: &[Todo]) -> usize {
     if todos.is_empty() {
         return 0;
     }
-    let done_count = todos.iter().filter(|t| t.done).count();
+    let done_count = todos.iter().filter(|t| t.is_complete).count();
     100 * done_count / todos.len()
 }

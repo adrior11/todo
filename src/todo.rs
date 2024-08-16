@@ -15,8 +15,10 @@ use crate::config::{Config, load_config_from_lua};
 pub struct Todo {
     pub(crate) id: usize,
     pub(crate) desc: String,
-    pub(crate) done: bool,
-    pub(crate) created_at: DateTime<Utc>,
+    pub(crate) is_complete: bool,
+    pub(crate) is_starred: bool,
+    pub(crate) timestamp: DateTime<Utc>,
+    // TODO: Prio
 }
 
 /// Struct representing a list of Todo items
@@ -37,6 +39,8 @@ impl TodoList {
                 .unwrap_or_else(|err| eprint!("Error: {}", err)),
             Pattern::List => self.list(),
             Pattern::Done { args } => self.done(args)
+                .unwrap_or_else(|err| eprintln!("Error: {}", err)),
+            Pattern::Star { args } => self.star(args)
                 .unwrap_or_else(|err| eprintln!("Error: {}", err)),
             Pattern::Rm { args } => self.rm(args)
                 .unwrap_or_else(|err| eprintln!("Error: {}", err)),
@@ -70,8 +74,9 @@ impl TodoList {
             self.todos.push(Todo {
                 id,
                 desc: item_desc.to_string(),
-                done: false,
-                created_at: Utc::now(),
+                is_complete: false,
+                is_starred: false,
+                timestamp: Utc::now(),
             });
         };
         self.list();
@@ -92,7 +97,20 @@ impl TodoList {
     fn done(&mut self, ids: Vec<usize>) -> Result<()> {
         for id in ids {
             if let Some(todo) = self.todos.iter().position(|todo| todo.id == id) {
-                self.todos[todo].done = true;
+                self.todos[todo].is_complete = true;
+            } else {
+                return Err(anyhow!("ID {} not found", id));
+            }
+        };
+        self.list();
+        Ok(())
+    }
+
+    /// Mark todo items as star 
+    fn star(&mut self, ids: Vec<usize>) -> Result<()> {
+        for id in ids {
+            if let Some(todo) = self.todos.iter().position(|todo| todo.id == id) {
+                self.todos[todo].is_starred = true;
             } else {
                 return Err(anyhow!("ID {} not found", id));
             }
@@ -130,8 +148,8 @@ impl TodoList {
     fn sort(&mut self, sort_by: Option<SortBy>) {
         match sort_by {
             Some(SortBy::Id) => self.todos.sort_by_key(|todo| todo.id),
-            Some(SortBy::Date) => self.todos.sort_by_key(|todo| todo.created_at),
-            _ => self.todos.sort_by_key(|todo| todo.done),
+            Some(SortBy::Date) => self.todos.sort_by_key(|todo| todo.timestamp),
+            _ => self.todos.sort_by_key(|todo| todo.is_complete),
         }
         self.list();
     }
@@ -194,8 +212,9 @@ impl TodoList {
             Some(Todo {
                 id: self.get_next_available_id(),
                 desc: backup_todo.desc.clone(),
-                done: backup_todo.done,
-                created_at: backup_todo.created_at,
+                is_complete: backup_todo.is_complete,
+                is_starred: backup_todo.is_starred,
+                timestamp: backup_todo.timestamp,
             })
         } else {
             eprintln!("Error: Todo item with ID {} not found in backup", id);
@@ -360,7 +379,19 @@ mod tests {
         todo_list.done(ids.clone()).expect("Failed to mark todos as done");
 
         for todo in todo_list.todos {
-            assert!(todo.done, "Todo item with ID {} was not marked as done", todo.id);
+            assert!(todo.is_complete, "Todo item with ID {} was not marked as done", todo.id);
+        }
+    }
+
+    #[test]
+    fn test_mark_todos_as_star() {
+        let mut todo_list = create_todo_list_with_items();
+        let ids: Vec<usize> = todo_list.todos.iter().map(|todo| todo.id).collect();
+
+        todo_list.star(ids.clone()).expect("Failed to mark todos as star");
+
+        for todo in todo_list.todos {
+            assert!(todo.is_starred, "Todo item with ID {} was not marked as star", todo.id);
         }
     }
 
