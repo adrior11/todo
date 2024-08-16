@@ -160,7 +160,7 @@ impl TodoList {
             Some(BackupAction::Create) => self.create_backup(),
             Some(BackupAction::Delete(delete_option)) => self.delete_backup(delete_option),
             Some(BackupAction::Restore { timestamp, args }) => self.restore_backup(&timestamp, args),
-            Some(BackupAction::Show { timestamp }) => self.show_backup(&timestamp),
+            Some(BackupAction::Open { timestamp }) => self.show_backup(&timestamp),
             _ => self.list_backups(),
         }
     }

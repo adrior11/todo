@@ -12,9 +12,11 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Pattern {
     /// List all todos
+    #[command(alias = "l")]
     List,
 
     /// Add a new todo
+    #[command(alias = "a")]
     Add { 
         /// The description of the todo(s), separated by '::' for multiple items
         #[arg(value_name = "TODO_DESCRIPTION", num_args(1..))]
@@ -22,6 +24,7 @@ pub enum Pattern {
     },
 
     /// Edit an existing todo item 
+    #[command(alias = "e")]
     Edit {
         /// The ID of the todo to edit
         #[arg(value_name = "TODO_ID")]
@@ -33,13 +36,23 @@ pub enum Pattern {
     },
     
     /// Mark a todo as done
+    #[command(alias = "d")]
     Done { 
         /// The ID of the todo to mark as done
         #[arg(value_name = "TODO_ID")]
         args: Vec<usize> 
     },
 
+    /// Star a todo
+    #[command(alias = "s")]
+    Star {
+        /// The ID of the todo to star 
+        #[arg(value_name = "TODO_ID")]
+        args: Vec<usize>
+    },
+
     /// Remove a todo
+    #[command(alias = "r")]
     Rm { 
         /// The ID of the todo to emove
         #[arg(value_name = "TODO_ID")]
@@ -50,6 +63,7 @@ pub enum Pattern {
     Reset,
 
     /// Sort todos
+    #[command(alias = "S")]
     Sort {
         /// The optional field to sort by
         #[arg(value_name = "SORT_BY")]
@@ -57,6 +71,7 @@ pub enum Pattern {
     },
 
     /// Backup the todo List
+    #[command(alias = "b")]
     Backup {
         /// The optional field of the backup action
         #[command(subcommand)]
@@ -64,23 +79,27 @@ pub enum Pattern {
     },
 }
 
-/// Enum representing different backup actions
+/// EnumI representing different backup actions
 #[derive(Subcommand)]
 pub enum BackupAction {
     /// Create a new backup
+    #[command(alias = "c")]
     Create,
 
     /// Shows the contents of a backup a backup file
-    Show {
+     #[command(alias = "o")]
+    Open {
         /// The timestamp of the backup file to show its contents
         #[arg(value_name = "TIMESTAMP")]
         timestamp: String,
     },
 
     /// Delete existing backups
+    #[command(alias = "D")]
     Delete(DeleteOptions), 
 
     /// Restore specific todo items from a backup
+    #[command(alias = "R")]
     Restore {
         /// The timestamp of the backup file to restore from
         #[arg(value_name = "TIMESTAMP")]
@@ -92,9 +111,9 @@ pub enum BackupAction {
     },
 
     /// List all backups (default action)
+    #[command(alias = "l")]
     List, 
 }
-
 
 ///Struct representing delete options
 #[derive(Args)]
@@ -104,14 +123,16 @@ pub struct DeleteOptions {
     pub option: DeleteOption
 }
 
-
 /// Enum representing delete options
 #[derive(Subcommand)]
 pub enum DeleteOption {
     /// Delete all backups
+    #[command(alias = "A")]
     All,
 
     /// Delete a specific backup by timestamp
+    // TODO: Adjust this arg
+    #[command(alias = "t")]
     Timestamp {
         /// The timestamp of the backup to delete
         #[arg(value_name = "TIMESTAMP")]
