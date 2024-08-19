@@ -18,7 +18,6 @@ pub struct Todo {
     pub(crate) is_complete: bool,
     pub(crate) is_starred: bool,
     pub(crate) timestamp: DateTime<Utc>,
-    // TODO: Prio
 }
 
 /// Struct representing a list of Todo items
@@ -110,7 +109,7 @@ impl TodoList {
     fn star(&mut self, ids: Vec<usize>) -> Result<()> {
         for id in ids {
             if let Some(todo) = self.todos.iter().position(|todo| todo.id == id) {
-                self.todos[todo].is_starred = true;
+                toggle_bool!(self.todos[todo].is_starred);
             } else {
                 return Err(anyhow!("ID {} not found", id));
             }

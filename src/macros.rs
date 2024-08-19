@@ -29,3 +29,26 @@ macro_rules! generate_lua_config {
     };
 }
 
+/// Toggles the value of a boolean variable.
+///
+/// # Parameters
+///
+/// - `$var`: A mutable reference to a boolean variable that will be toggled.
+///
+/// # Example
+///
+/// ```
+/// # #[macro_use] extern crate todo;
+/// let mut my_bool = true;
+/// toggle_bool!(my_bool);
+/// # assert_eq!(my_bool, false);
+/// toggle_bool!(my_bool);
+/// # assert_eq!(my_bool, true);
+/// ```
+#[macro_export]
+macro_rules! toggle_bool {
+    ($var:expr) => {
+        $var = !$var;
+    };
+}
+
