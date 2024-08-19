@@ -17,8 +17,8 @@ This application allows you to manage your todo lists directly from the terminal
 - [X] Implement a backup solution to prevent accidental deletion of todos
 - [X] Add a feature to edit existing todo items
 - [X] Add restore command for backup retrieval
-- [ ] Implement a filter for todo items
-- [ ] Implement multiple todo lists
+- [X] Implement a filter for todo items
+- [ ] Implement multiple todo lists using boards
 - [ ] Improve the user interface
 - [ ] Add due dates and reminders for todo items
 
@@ -91,22 +91,28 @@ Add one or more todos, separated by `::`.
 
 ```sh
 todo add [TODO_DESCRIPTION]
-```
 
-Example:
-
-```sh
+# Example:
 todo add Buy milk::Clean the house::Water plants
 ```
 
 ### Edit an existing todo item
 ```sh 
 todo edit <TODO_ID> <NEW_DESCRIPTION>
+
+# Example:
+todo edit 1 Buy almond milk
 ```
 
-Example:
-```sh 
-todo edit 1 Buy almond milk
+### Filter todo items
+
+Filter your todo list by a specific query.
+
+```sh
+todo filter [QUERY]
+
+# Example:
+todo filter plants
 ```
 
 ### Mark a todo as done
@@ -115,12 +121,31 @@ Mark one or more todos as done by their IDs.
 
 ```sh
 todo done [TODO_ID]
+
+# Example:
+todo done 1 2 3
 ```
 
-Example:
+### Mark a todo as not done
+
+Mark one or more todos as not done by their IDs.
 
 ```sh
-todo done 1 2 3
+todo undone [TODO_ID]
+
+# Example:
+todo undone 1 2 3
+```
+
+### Star todo items 
+
+Highlight one or more important todos by marking them as `star`. If an item is already starred, running this command again on the same ID will `unstar` it, effectively toggling the star status.
+
+```sh
+todo star [TODO_ID]
+
+# Example:
+todo star 1 2 3
 ```
 
 ### Remove a todo
@@ -129,10 +154,8 @@ Remove one or more todos by their IDs.
 
 ```sh
 todo rm [TODO_ID]
-```
 
-Example:
-```sh
+# Example:
 todo rm 1 2 3
 ```
 
@@ -156,6 +179,9 @@ todo backup create
 
 ```sh 
 todo backup show <TIMESTAMP>
+
+# Example:
+todo backup show 1723823802
 ```
 
 #### Delete existing backups 
@@ -170,16 +196,17 @@ todo backup delete all
 
 ```sh 
 todo backup delete timestamp <TIMESTAMP>
+
+# Example:
+todo backup delete timestamp 1723823802
 ```
 
 #### Restore todo items from a backup
 
 ```sh
 todo backup restore <TIMESTAMP> [TODO_ID]
-```
 
-Example:
-```sh
+# Example:
 todo backup restore 1723065962 1 2 3
 ```
 
@@ -191,21 +218,17 @@ todo backup list
 
 ### Sort todos
 
-#### Sort by ID 
+Sort your todos with an optional sorting rule.
 
-```sh 
-todo sort id
-```
+```sh
+# Possible values:
+# - id
+# - date
+# - done (default)
 
-#### Sort by creation date
+todo sort [SORT_BY]
 
-```
+#Example:
 todo sort date
-```
-
-#### Sort by completion status (default)
-
-```sh 
-todo sort done
 ```
 
