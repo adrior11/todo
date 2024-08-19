@@ -52,6 +52,14 @@ pub enum Pattern {
         args: Vec<usize> 
     },
 
+    /// Mark a todo as not done
+    #[command(alias = "u")]
+    Undone { 
+        /// The ID of the todo to mark as not done
+        #[arg(value_name = "TODO_ID")]
+        args: Vec<usize>
+    },
+
     /// Star a todo
     #[command(alias = "s")]
     Star {

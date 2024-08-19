@@ -11,8 +11,6 @@ use crate::utils::*;
 use crate::config::{Config, load_config_from_lua};
 
 // TODO: Implement boards  
-// TODO: Implement filter 
-// TODO: Implement undone 
 
 /// Struct representing a Todo item
 #[derive(Serialize, Deserialize)]
@@ -46,6 +44,8 @@ impl TodoList {
             Pattern::Filter { query } => self.filter(query)
                 .unwrap_or_else(|err| eprintln!("Error: {}", err)),
             Pattern::Done { args } => self.done(args)
+                .unwrap_or_else(|err| eprintln!("Error: {}", err)),
+            Pattern::Undone { args } => self.undone(args)
                 .unwrap_or_else(|err| eprintln!("Error: {}", err)),
             Pattern::Star { args } => self.star(args)
                 .unwrap_or_else(|err| eprintln!("Error: {}", err)),
@@ -126,6 +126,19 @@ impl TodoList {
         for id in ids {
             if let Some(todo) = self.todos.iter().position(|todo| todo.id == id) {
                 self.todos[todo].is_complete = true;
+            } else {
+                return Err(anyhow!("ID {} not found", id));
+            }
+        };
+        self.list();
+        Ok(())
+    }
+
+    /// Mark todo items as not done 
+    fn undone(&mut self, ids: Vec<usize>) -> Result<()> {
+        for id in ids {
+            if let Some(todo) = self.todos.iter().position(|todo| todo.id == id) {
+                self.todos[todo].is_complete = false;
             } else {
                 return Err(anyhow!("ID {} not found", id));
             }
