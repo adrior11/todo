@@ -10,6 +10,10 @@ use crate::render::render_todo_list;
 use crate::utils::*;
 use crate::config::{Config, load_config_from_lua};
 
+// TODO: Implement boards  
+// TODO: Implement filter 
+// TODO: Implement undone 
+
 /// Struct representing a Todo item
 #[derive(Serialize, Deserialize)]
 pub struct Todo {
@@ -18,6 +22,8 @@ pub struct Todo {
     pub(crate) is_complete: bool,
     pub(crate) is_starred: bool,
     pub(crate) timestamp: DateTime<Utc>,
+    // TODO: Tags 
+    // TODO: Notes 
 }
 
 /// Struct representing a list of Todo items
@@ -33,10 +39,12 @@ impl TodoList {
     /// Handle CLI commands
     pub fn handle_cli(&mut self, pattern: Pattern) {
         match pattern {
+            Pattern::List => self.list(),
             Pattern::Add { args } => self.add(args),
             Pattern::Edit { id, description } => self.edit(id, description)
-                .unwrap_or_else(|err| eprint!("Error: {}", err)),
-            Pattern::List => self.list(),
+                .unwrap_or_else(|err| eprintln!("Error: {}", err)),
+            Pattern::Filter { query } => self.filter(query)
+                .unwrap_or_else(|err| eprintln!("Error: {}", err)),
             Pattern::Done { args } => self.done(args)
                 .unwrap_or_else(|err| eprintln!("Error: {}", err)),
             Pattern::Star { args } => self.star(args)
@@ -51,7 +59,8 @@ impl TodoList {
 
     /// List all todo items
     pub fn list(&self) {
-        render_todo_list(&self.todos, &self.config)
+        let todos_refs: Vec<&Todo> = self.todos.iter().collect();
+        render_todo_list(&todos_refs, &self.config)
     }
 
     /// Add new todo items
@@ -90,6 +99,26 @@ impl TodoList {
         } else {
             Err(anyhow!("ID {} not found", id))
         }
+    }
+
+    /// Filters the todo list based on a query string.
+    fn filter(&self, query: Vec<String>) -> Result<()> {
+        let query = query.join(" ").to_lowercase();
+        
+        let mut filtered_todos: Vec<&Todo> = Vec::new();
+        for todo in &self.todos {
+            if todo.desc.to_lowercase().contains(&query) {
+                filtered_todos.push(todo);
+            }
+        }
+
+        if filtered_todos.is_empty() {
+            println!("No results found for query: {}", query);
+            return Ok(());
+        }
+
+        render_todo_list(filtered_todos.as_slice(), &self.config);
+        Ok(())
     }
 
     /// Mark todo items as done

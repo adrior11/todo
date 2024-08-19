@@ -30,7 +30,7 @@ pub fn render_todo(todo: &Todo, _config: &Config, max_indent_count: usize) {
 }
 
 /// Renders the list of todos.
-pub fn render_todo_list(todos: &[Todo], config: &Config) {
+pub fn render_todo_list(todos: &[&Todo], config: &Config) {
     let max_id_width = todos.iter()
         .map(|todo| todo.id)
         .max()
@@ -51,18 +51,21 @@ pub fn render_todo_list(todos: &[Todo], config: &Config) {
     println!("{}", completed_string);
 }
 
+/// Calculates the number of days since the given date.
 fn days_since(date: DateTime<Utc>) -> String {
     let now = Utc::now();
     let diff = now - date;
     format!("{}d", diff.num_days())
 }
 
-fn format_status_summary(todos: &[Todo]) -> ColoredString {
+/// Formats a summary of the todo list's completion status.
+fn format_status_summary(todos: &[&Todo]) -> ColoredString {
     let done_count = todos.iter().filter(|t| t.is_complete).count();
     format!("[{}/{}]", done_count, todos.len()).dimmed()
 }
 
-fn calculate_completion_rate(todos: &[Todo]) -> usize {
+/// Calculates the completion rate of the todo list.
+fn calculate_completion_rate(todos: &[&Todo]) -> usize {
     if todos.is_empty() {
         return 0;
     }

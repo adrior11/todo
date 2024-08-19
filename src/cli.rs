@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand, Args, ValueEnum};
 
 /// CLI structure to parse command line arguments
+// TODO: Add after_help with aliases 
 #[derive(Parser)]
 #[command(author, version, about = "A CLI todo application", long_about = None)]
 pub struct Cli {
@@ -33,6 +34,14 @@ pub enum Pattern {
         /// The new description for the todo
         #[arg(value_name = "NEW_DESCRIPTION")]
         description: Vec<String>,
+    },
+
+    /// Filters the todo list by the specified query string
+    #[command(alias = "f")]
+    Filter {
+        /// Query string to filter todos by
+        #[arg(value_name = "QUERY")]
+        query: Vec<String>,
     },
     
     /// Mark a todo as done
