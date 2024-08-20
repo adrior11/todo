@@ -1,3 +1,4 @@
+// TODO: Adjust all the self.list() calls with messages instead
 use serde::{Deserialize, Serialize};
 use anyhow::{anyhow, Context, Result};
 use std::collections::BTreeSet;
@@ -37,6 +38,7 @@ impl TodoList {
     /// Handle CLI commands
     pub fn handle_cli(&mut self, pattern: Pattern) {
         match pattern {
+            // TODO: Check if unwrap is necessary 
             Pattern::List => self.list(),
             Pattern::Add { args } => self.add(args),
             Pattern::Edit { id, description } => self.edit(id, description)
@@ -102,18 +104,25 @@ impl TodoList {
     }
 
     /// Filters the todo list based on a query string.
+    // TODO: Allow filtering for @Board; #Tag; Dates (regex?)
     fn filter(&self, query: Vec<String>) -> Result<()> {
-        let query = query.join(" ").to_lowercase();
-        
-        let mut filtered_todos: Vec<&Todo> = Vec::new();
-        for todo in &self.todos {
-            if todo.desc.to_lowercase().contains(&query) {
-                filtered_todos.push(todo);
-            }
-        }
+        // Join the query list into a single string and split by "::" to handle multi-query
+        let queries: Vec<String> = query.join(" ")
+            .to_lowercase()
+            .split("::")
+            .map(|q| q.trim().to_string())
+            .collect();
+
+        // Filter the todo list based on the queries
+        let filtered_todos: Vec<&Todo> = self.todos.iter()
+            .filter(|todo| {
+                let desc = todo.desc.to_lowercase();
+                queries.iter().any(|q| desc.contains(q))
+            })
+            .collect();
 
         if filtered_todos.is_empty() {
-            println!("No results found for query: {}", query);
+            println!("No results found for query: {:?}", queries);
             return Ok(());
         }
 
