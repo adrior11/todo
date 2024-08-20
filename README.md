@@ -7,6 +7,7 @@ This application allows you to manage your todo lists directly from the terminal
 
 - Add, list, star, mark as done, and remove todo items
 - Support for multiple todo items in a single command using `::` as a delimiter
+- Filter todo items using a query or multiple queries separated by `::`
 - Sort todos by ID, creation date, or completion status
 - Reset the entire todo list
 - Create, manage, and access backup files
@@ -72,7 +73,7 @@ $ todo --help
       --star, -s          Star/Unstar a todo item(s)
       --rm, -r            Remove a todo item(s)
       --reset             Reset the todo list
-      --sort, -S          Sort todos by optional specified criteria [possible values: id, date, done]
+      --sort, -S          Sort todos by specified criteria [possible values: id, date, done]
       --backup, -b        Backup and manage todo backups
 
     Backup Options
@@ -90,9 +91,11 @@ $ todo --help
     Examples
       $ todo
       $ todo --list
+      $ todo --add Hello World!
       $ todo --add Buy milk::Clean the house::Water plants
       $ todo --edit 1 Buy almond milk
       $ todo --filter plants
+      $ todo --filter plants::milk
       $ todo --done 1 2 3
       $ todo --undone 1 2 3
       $ todo --star 1 2 3
@@ -145,11 +148,13 @@ todo list
 ### Add a new todo
 
 Add one or more todos, separated by `::`.
+Note that leading and trailing spaces in the todo descriptions will be automatically removed, so a description like `  Buy milk :: Water plants  ` will be treated as `Buy milk` & `Water plants`.
 
 ```sh
 todo add [TODO_DESCRIPTION]...
 
 # Example:
+todo add Hello World!
 todo add Buy milk::Clean the house::Water plants
 ```
 
@@ -163,13 +168,15 @@ todo edit 1 Buy almond milk
 
 ### Filter todo items
 
-Filter your todo list by a specific query.
+Filter your todo list by a specific query or multiple queries separated by `::`.
+Note that leading and trailing spaces in the queries will be automatically removed, so a query like `  Sweet  ` will match both `HomeSweetHome` and `Home Sweet Home`.
 
 ```sh
 todo filter [QUERY]...
 
 # Example:
 todo filter plants
+todo filter plants::milk
 ```
 
 ### Mark a todo as done
