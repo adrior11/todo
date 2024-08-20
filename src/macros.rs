@@ -104,7 +104,7 @@ macro_rules! modify_todos {
             if let Some(todo) = $self.todos.iter_mut().find(|todo| todo.id == id) {
                 $action(todo);
             } else {
-                return Err(anyhow!("ID {} not found", id));
+                return Err(anyhow!("Todo item with ID {} not found", id));
             }
         }
     };

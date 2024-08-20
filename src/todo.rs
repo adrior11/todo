@@ -1,4 +1,3 @@
-// TODO: Adjust all the self.list() calls with messages instead
 use serde::{Deserialize, Serialize};
 use anyhow::{anyhow, Context, Result};
 use std::collections::BTreeSet;
@@ -90,7 +89,7 @@ impl TodoList {
             self.list();
             Ok(())
         } else {
-            Err(anyhow!("ID {} not found", id))
+            Err(anyhow!("Todo item with ID {} not found", id))
         }
     }
 
@@ -154,7 +153,7 @@ impl TodoList {
             if let Some(todo) = self.todos.iter().position(|todo| todo.id == id) {
                 self.available_ids.insert(self.todos.remove(todo).id);
             } else {
-                return Err(anyhow!("ID {} not found", id));
+                return Err(anyhow!("Todo item with ID {} not found", id));
             }
         };
         self.list();
@@ -169,6 +168,8 @@ impl TodoList {
 
         self.todos.clear();
         self.available_ids.clear();
+
+        println!("Todo list has been reset.");
 
         Ok(())
     }
