@@ -1,9 +1,8 @@
 use clap::{Parser, Subcommand, Args, ValueEnum};
 
 /// CLI structure to parse command line arguments
-// TODO: Add after_help with aliases 
 #[derive(Parser)]
-#[command(author, version, about = "A CLI todo application", long_about = None)]
+#[command(author, version, about = "A simple and flexible command-line todo application built with Rust.", long_about = None)]
 pub struct Cli {
     #[command(subcommand)]
     pub pattern: Option<Pattern>,
@@ -96,9 +95,13 @@ pub enum Pattern {
     },
 }
 
-/// EnumI representing different backup actions
+/// Enum representing different backup actions
 #[derive(Subcommand)]
 pub enum BackupAction {
+    /// List all backups (default action)
+    #[command(alias = "l")]
+    List, 
+
     /// Create a new backup
     #[command(alias = "c")]
     Create,
@@ -110,10 +113,6 @@ pub enum BackupAction {
         #[arg(value_name = "TIMESTAMP")]
         timestamp: String,
     },
-
-    /// Delete existing backups
-    #[command(alias = "D")]
-    Delete(DeleteOptions), 
 
     /// Restore specific todo items from a backup
     #[command(alias = "R")]
@@ -127,9 +126,9 @@ pub enum BackupAction {
         args: Vec<usize> 
     },
 
-    /// List all backups (default action)
-    #[command(alias = "l")]
-    List, 
+    /// Delete existing backups
+    #[command(alias = "D")]
+    Delete(DeleteOptions), 
 }
 
 ///Struct representing delete options
@@ -148,7 +147,6 @@ pub enum DeleteOption {
     All,
 
     /// Delete a specific backup by timestamp
-    // TODO: Adjust this arg
     #[command(alias = "t")]
     Timestamp {
         /// The timestamp of the backup to delete
