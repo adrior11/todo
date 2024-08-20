@@ -5,7 +5,7 @@ This application allows you to manage your todo lists directly from the terminal
 
 ## Features
 
-- Add, list, mark as done, and remove todo items
+- Add, list, star, mark as done, and remove todo items
 - Support for multiple todo items in a single command using `::` as a delimiter
 - Sort todos by ID, creation date, or completion status
 - Reset the entire todo list
@@ -20,6 +20,7 @@ This application allows you to manage your todo lists directly from the terminal
 - [X] Implement a filter for todo items
 - [ ] Implement multiple todo lists using boards
 - [ ] Improve the user interface
+- [ ] Add further configuration options
 - [ ] Add due dates and reminders for todo items
 
 ## Installation
@@ -52,6 +53,62 @@ To run the application, follow these steps:
 
 Make sure you have [Rust](https://www.rust-lang.org/tools/install) installed on your system before running the available commands.
 
+## Usage 
+
+```sh
+$ todo --help
+
+  Usage
+    $ todo [<options> ...]
+
+    Options
+        none              List all todos (default action)
+      --list, -l          List all todos
+      --add, -a           Add a new todo item(s)
+      --edit, -e          Edit an existing todo item
+      --filter, -f        Filter todos by a query string
+      --done, -d          Mark a todo(s) as done
+      --undone, -u        Mark a todo(s) as not done
+      --star, -s          Star/Unstar a todo item(s)
+      --rm, -r            Remove a todo item(s)
+      --reset             Reset the todo list
+      --sort, -S          Sort todos by optional specified criteria [possible values: id, date, done]
+      --backup, -b        Backup and manage todo backups
+
+    Backup Options
+        none              List all backups (default action)
+        create, c         Create a new backup
+        open, o           Open a backup to view its contents
+        delete, D         Delete backups
+        restore, R        Restore a todo item(s) from a backup
+        list, l           List all backups
+
+    Delete Options
+        all, A            Delete all backups
+        timestamp, t      Delete a specific backup by timestamp
+
+    Examples
+      $ todo
+      $ todo --list
+      $ todo --add Buy milk::Clean the house::Water plants
+      $ todo --edit 1 Buy almond milk
+      $ todo --filter plants
+      $ todo --done 1 2 3
+      $ todo --undone 1 2 3
+      $ todo --star 1 2 3
+      $ todo --rm 1 2 3
+      $ todo --reset
+      $ todo --sort
+      $ todo --sort id
+      $ todo --backup
+      $ todo --backup list
+      $ todo --backup create
+      $ todo --backup open 1723823802
+      $ todo --backup restore 1723823802 1 2
+      $ todo --backup delete all
+      $ todo --backup delete timestamp 1723823802
+```
+
 ## Configuration
 
 The application now supports user-configurable options via a Lua configuration file. The configuration file is located at:
@@ -78,7 +135,7 @@ config = {
 
 You can edit this file to customize the behavior of the application.
 
-## Usage
+## Command Details
 
 ### List all todos (default)
 ```sh
@@ -90,7 +147,7 @@ todo list
 Add one or more todos, separated by `::`.
 
 ```sh
-todo add [TODO_DESCRIPTION]
+todo add [TODO_DESCRIPTION]...
 
 # Example:
 todo add Buy milk::Clean the house::Water plants
@@ -109,7 +166,7 @@ todo edit 1 Buy almond milk
 Filter your todo list by a specific query.
 
 ```sh
-todo filter [QUERY]
+todo filter [QUERY]...
 
 # Example:
 todo filter plants
@@ -120,7 +177,7 @@ todo filter plants
 Mark one or more todos as done by their IDs.
 
 ```sh
-todo done [TODO_ID]
+todo done [TODO_ID]...
 
 # Example:
 todo done 1 2 3
@@ -131,7 +188,7 @@ todo done 1 2 3
 Mark one or more todos as not done by their IDs.
 
 ```sh
-todo undone [TODO_ID]
+todo undone [TODO_ID]...
 
 # Example:
 todo undone 1 2 3
@@ -142,7 +199,7 @@ todo undone 1 2 3
 Highlight one or more important todos by marking them as `star`. If an item is already starred, running this command again on the same ID will `unstar` it, effectively toggling the star status.
 
 ```sh
-todo star [TODO_ID]
+todo star [TODO_ID]...
 
 # Example:
 todo star 1 2 3
@@ -153,7 +210,7 @@ todo star 1 2 3
 Remove one or more todos by their IDs.
 
 ```sh
-todo rm [TODO_ID]
+todo rm [TODO_ID]...
 
 # Example:
 todo rm 1 2 3
@@ -167,55 +224,6 @@ Reset a todo list, clearing all todos. This action will automatically create a b
 todo reset
 ```
 
-### Backup the todo list
-
-#### Create a new backup 
-
-```sh 
-todo backup create
-```
-
-#### Show the contents of a specific backup file by its timestamp.
-
-```sh 
-todo backup show <TIMESTAMP>
-
-# Example:
-todo backup show 1723823802
-```
-
-#### Delete existing backups 
-
-##### Delete all backups 
-
-```sh 
-todo backup delete all 
-```
-
-##### Delete a specific backup by timestamp 
-
-```sh 
-todo backup delete timestamp <TIMESTAMP>
-
-# Example:
-todo backup delete timestamp 1723823802
-```
-
-#### Restore todo items from a backup
-
-```sh
-todo backup restore <TIMESTAMP> [TODO_ID]
-
-# Example:
-todo backup restore 1723065962 1 2 3
-```
-
-#### List all backups (default)
-
-```sh 
-todo backup list
-```
-
 ### Sort todos
 
 Sort your todos with an optional sorting rule.
@@ -226,9 +234,57 @@ Sort your todos with an optional sorting rule.
 # - date
 # - done (default)
 
-todo sort [SORT_BY]
+todo sort [SORT_BY]...
 
-#Example:
+# Example:
 todo sort date
 ```
 
+## Backup Commands
+
+### List all backups (default)
+
+```sh 
+todo backup list
+```
+
+### Create a new backup 
+
+```sh 
+todo backup create
+```
+
+### Show the contents of a specific backup file by its timestamp.
+
+```sh 
+todo backup open <TIMESTAMP>
+
+# Example:
+todo backup open 1723823802
+```
+
+### Restore todo items from a backup
+
+```sh
+todo backup restore <TIMESTAMP> [TODO_ID]...
+
+# Example:
+todo backup restore 1723065962 1 2 3
+```
+
+### Delete existing backups 
+
+#### Delete all backups 
+
+```sh 
+todo backup delete all 
+```
+
+#### Delete a specific backup by its timestamp 
+
+```sh 
+todo backup delete timestamp <TIMESTAMP>
+
+# Example:
+todo backup delete timestamp 1723823802
+```
