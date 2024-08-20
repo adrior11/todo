@@ -3,7 +3,7 @@
 A simple and flexible command-line todo application built with Rust. 
 This application allows you to manage your todo lists directly from the terminal, with support for multiple todo items in a single command.
 
-## Features
+## ✨ Features
 
 - Add, list, star, mark as done, and remove todo items
 - Support for multiple todo items in a single command using `::` as a delimiter
@@ -13,7 +13,7 @@ This application allows you to manage your todo lists directly from the terminal
 - Create, manage, and access backup files
 - User-configurable options via a Lua file 
 
-## Planned Features
+## 🛠️ Planned Features
 
 - [X] Implement a backup solution to prevent accidental deletion of todos
 - [X] Add a feature to edit existing todo items
@@ -24,7 +24,7 @@ This application allows you to manage your todo lists directly from the terminal
 - [ ] Add further configuration options
 - [ ] Add due dates and reminders for todo items
 
-## Installation
+## ⚙️ Installation
 
 > [!IMPORTANT]  
 > There is no official release of this application yet.
@@ -54,7 +54,7 @@ To run the application, follow these steps:
 
 Make sure you have [Rust](https://www.rust-lang.org/tools/install) installed on your system before running the available commands.
 
-## Usage 
+## 🚀 Usage 
 
 ```sh
 $ todo --help
@@ -112,7 +112,7 @@ $ todo --help
       $ todo --backup delete timestamp 1723823802
 ```
 
-## Configuration
+## 🔧 Configuration
 
 The application now supports user-configurable options via a Lua configuration file. The configuration file is located at:
 
@@ -138,7 +138,7 @@ config = {
 
 You can edit this file to customize the behavior of the application.
 
-## Command Details
+## 📝️ Command Details
 
 ### List all todos (default)
 ```sh
@@ -247,7 +247,7 @@ todo sort [SORT_BY]...
 todo sort date
 ```
 
-## Backup Commands
+## 💾 Backup Commands
 
 ### List all backups (default)
 
