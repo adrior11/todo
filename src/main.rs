@@ -32,7 +32,7 @@ fn run() -> Result<()> {
 
     // Handle CLI commands or default to listing todos
     match args.pattern {
-        Some(pattern) => todo_list.handle_cli(pattern),
+        Some(pattern) => todo_list.handle_cli(pattern)?,
         None => todo_list.list(),
     }
    

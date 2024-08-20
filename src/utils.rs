@@ -11,7 +11,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 ///
 /// `Result<PathBuf>` - The full path to the `todos.json` file, or an error if the path could not be determined or created.
 pub fn get_todo_file_path() -> Result<PathBuf> {
-    let mut path = get_app_dir()?;
+    let mut path = get_app_dir().context("Could not locate or create the application data directory for storing todo files")?;
     path.push("todos.json");
     Ok(path)
 }
@@ -109,7 +109,7 @@ pub fn delete_backup_files() -> Result<()> {
         let entry = entry?;
         let path = entry.path();
         if path.file_name().unwrap().to_str().unwrap().starts_with("todos_backup_") {
-            let _ = fs::remove_file(&path).with_context(|| format!("Failed to remove backup file: {:?}", path));
+            fs::remove_file(&path).with_context(|| format!("Failed to remove backup file: {:?}", path))?;
         }
     }
 
@@ -129,7 +129,7 @@ pub fn delete_backup_files() -> Result<()> {
 /// `Result<()>` - Returns `Ok(())` if the backup file is successfully deleted, or an error if it cannot be found or deleted.
 pub fn delete_specific_backup_file(timestamp: &str) -> Result<()> {
     let backup_file = get_backup_file_path(timestamp)?;
-    fs::remove_file(&backup_file).with_context(|| format!("Failed to remove backup file: {:?}", backup_file))?;
+    fs::remove_file(&backup_file).with_context(|| format!("Failed to delete backup file {} at: {:?}. Please check if the file exists.", timestamp, backup_file))?;
     Ok(())
 }
 
@@ -144,7 +144,7 @@ pub fn delete_specific_backup_file(timestamp: &str) -> Result<()> {
 pub fn backup_todo_file() -> Result<PathBuf> {
     let todo_path = get_todo_file_path()?;
     if !todo_path.exists() {
-        return Err(anyhow!("Todo file does not exist"));
+        return Err(anyhow!("Todo file does not exist. Please ensure that the todo list has been created before attempting to back it up."));
     }
 
     let backup_dir = get_backup_dir_path()?;
