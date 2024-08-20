@@ -10,7 +10,7 @@ use crate::cli::{BackupAction, DeleteOptions, DeleteOption, Pattern, SortBy};
 use crate::render::render_todo_list;
 use crate::utils::*;
 use crate::config::{Config, load_config_from_lua};
-// use crate::modify_todos;
+use crate::modify_todos;
 
 // TODO: Implement boards  
 
@@ -123,46 +123,33 @@ impl TodoList {
 
     /// Mark todo items as done
     fn done(&mut self, ids: Vec<usize>) -> Result<()> {
-        for id in ids {
-            if let Some(todo) = self.todos.iter().position(|todo| todo.id == id) {
-                self.todos[todo].is_complete = true;
-            } else {
-                return Err(anyhow!("ID {} not found", id));
-            }
-        };
+        modify_todos!(self, ids, |todo: &mut Todo| {
+            todo.is_complete = true;
+        });
         self.list();
         Ok(())
     }
 
     /// Mark todo items as not done 
     fn undone(&mut self, ids: Vec<usize>) -> Result<()> {
-        for id in ids {
-            if let Some(todo) = self.todos.iter().position(|todo| todo.id == id) {
-                self.todos[todo].is_complete = false;
-            } else {
-                return Err(anyhow!("ID {} not found", id));
-            }
-        };
+        modify_todos!(self, ids, |todo: &mut Todo| {
+            todo.is_complete = false;
+        });
         self.list();
         Ok(())
     }
 
     /// Mark todo items as star 
     fn star(&mut self, ids: Vec<usize>) -> Result<()> {
-        for id in ids {
-            if let Some(todo) = self.todos.iter().position(|todo| todo.id == id) {
-                toggle_bool!(self.todos[todo].is_starred);
-            } else {
-                return Err(anyhow!("ID {} not found", id));
-            }
-        };
+        modify_todos!(self, ids, |todo: &mut Todo| {
+            toggle_bool!(todo.is_starred);
+        });
         self.list();
         Ok(())
     }
 
     /// Remove todo items by ID
     fn rm(&mut self, ids: Vec<usize>) -> Result<()>{
-        // FIX: MACRO
         for id in ids {
             if let Some(todo) = self.todos.iter().position(|todo| todo.id == id) {
                 self.available_ids.insert(self.todos.remove(todo).id);
