@@ -1,4 +1,4 @@
-// FIX: Rename config -> Config
+// TODO: .toml support 
 use rlua::Lua;
 use serde::Deserialize;
 use anyhow::{Context, Result};
@@ -18,6 +18,9 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             backup_on_reset: true,
+            // TODO: Verbose -> No auto list after every command
+            // TODO: Filter any -> all 
+            // TODO: Filter case_sensitive 
             // TODO: directory
             // TODO: Style
         }
@@ -52,7 +55,7 @@ pub fn load_config_from_lua() -> Result<Config> {
     
     lua.load(&std::fs::read_to_string(&config_path)?).exec()?;
 
-    let config: rlua::Table = lua.globals().get("config")?;
+    let config: rlua::Table = lua.globals().get("Config")?;
 
     Ok(Config {
         backup_on_reset: get_config_value!(config, "backup_on_reset", Config::default().backup_on_reset),

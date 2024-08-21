@@ -19,7 +19,7 @@
 macro_rules! generate_lua_config {
     ($($key:expr => $value:expr),* $(,)?) => {
         {
-            let mut lua_config = String::from("config = {\n");
+            let mut lua_config = String::from("Config = {\n");
             $(
                 lua_config.push_str(&format!("    {} = {},\n", $key, $value));
             )*
